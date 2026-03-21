@@ -1,0 +1,463 @@
+﻿const axios = require('axios');
+const polyline = require('@mapbox/polyline');
+const Route = require('../models/Route');
+
+class RydinexRoutingService {
+  constructor() {
+    // OSRM demo server (for testing - use self-hosted for production)
+    this.osrmUrl = process.env.OSRM_URL || 'http://router.project-osrm.org';
+    this.profile = 'driving'; // 'driving', 'walking', 'cycling'
+  }
+
+  /**
+   * Calculate route between waypoints
+   * @param {Array} waypoints - Array of {latitude, longitude, name} objects
+   * @param {Object} options - Steps, geometries, annotations
+   * @returns {Object} Route with instructions and metrics
+   */
+  async calculateRoute(waypoints, options = {}) {
+    const { steps = true, geometries = 'geojson', annotations = ['duration', 'distance'] } =
+      options;
+
+    if (!waypoints || waypoints.length < 2) {
+      throw new Error('At least 2 waypoints required');
+    }
+
+    try {
+      // Format coordinates for OSRM: lon,lat;lon,lat;...
+      const coordinates = waypoints.map(wp => `${wp.longitude},${wp.latitude}`).join(';');
+
+      // Build OSRM API URL
+      const url = `${this.osrmUrl}/route/v1/${this.profile}/${coordinates}`;
+      const params = {
+        steps: steps,
+        geometries: geometries,
+        overview: 'full',
+        annotations: annotations.join(','),
+      };
+
+      // Call OSRM API
+      const response = await axios.get(url, { params });
+
+      if (response.data.code !== 'Ok') {
+        throw new Error(`OSRM error: ${response.data.message}`);
+      }
+
+      // Parse route
+      const route = response.data.routes[0];
+
+      return {
+        success: true,
+        totalDistance: route.distance / 1000, // Convert to km
+        totalDuration: route.duration, // seconds
+        totalDurationMinutes: Math.round(route.duration / 60),
+        geometry: route.geometry,
+        decodedGeometry: this._decodePolyline(route.geometry),
+        segments: this._parseSegments(route.legs),
+        waypoints: this._parseWaypoints(waypoints, response.data.waypoints),
+        eta: this._calculateETA(route.duration),
+      };
+    } catch (error) {
+      console.error('Error calculating route:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate distance and time between two points (simple)
+   * @param {Number} lat1, lon1 - Start coordinates
+   * @param {Number} lat2, lon2 - End coordinates
+   * @returns {Object} Distance (km) and duration (seconds)
+   */
+  async getDistance(lat1, lon1, lat2, lon2) {
+    try {
+      const coordinates = `${lon1},${lat1};${lon2},${lat2}`;
+      const url = `${this.osrmUrl}/route/v1/${this.profile}/${coordinates}`;
+
+      const response = await axios.get(url, {
+        params: { overview: 'false' },
+      });
+
+      if (response.data.code !== 'Ok') {
+        throw new Error(`OSRM error: ${response.data.message}`);
+      }
+
+      const route = response.data.routes[0];
+
+      return {
+        distance: route.distance / 1000, // km
+        duration: route.duration, // seconds
+        durationMinutes: Math.round(route.duration / 60),
+        eta: new Date(Date.now() + route.duration * 1000),
+      };
+    } catch (error) {
+      console.error('Error getting distance:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get matrix of distances/durations between all points
+   * Useful for multi-stop optimization
+   * @param {Array} locations - Array of {latitude, longitude}
+   * @returns {Object} Distance and duration matrix
+   */
+  async getDistanceMatrix(locations) {
+    try {
+      const coordinates = locations.map(loc => `${loc.longitude},${loc.latitude}`).join(';');
+      const url = `${this.osrmUrl}/table/v1/${this.profile}/${coordinates}`;
+
+      const response = await axios.get(url);
+
+      if (response.data.code !== 'Ok') {
+        throw new Error(`OSRM error: ${response.data.message}`);
+      }
+
+      return {
+        durations: response.data.durations, // 2D array of seconds
+        distances: response.data.distances, // 2D array of meters
+      };
+    } catch (error) {
+      console.error('Error getting distance matrix:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Optimize waypoint order for multi-stop routing
+   * Uses OSRM Optimize service
+   * @param {Array} waypoints - Array of waypoints
+   * @returns {Array} Optimized waypoint order
+   */
+  async optimizeRoute(waypoints) {
+    try {
+      // OSRM Optimize endpoint
+      const coordinates = waypoints.map(wp => `${wp.longitude},${wp.latitude}`).join(';');
+      const url = `${this.osrmUrl}/trip/v1/${this.profile}/${coordinates}`;
+
+      const response = await axios.get(url);
+
+      if (response.data.code !== 'Ok') {
+        throw new Error(`OSRM error: ${response.data.message}`);
+      }
+
+      // Extract optimized waypoint order
+      const optimizedWaypoints = response.data.waypoints.map(wp => ({
+        originalIndex: wp.waypoint_index,
+        optimizedOrder: waypoints[wp.waypoint_index],
+      }));
+
+      return {
+        success: true,
+        optimizedOrder: response.data.waypoints.map(wp => wp.waypoint_index),
+        optimizedDistance: response.data.trips[0].distance / 1000, // km
+        optimizedDuration: response.data.trips[0].duration, // seconds
+        waypoints: optimizedWaypoints,
+      };
+    } catch (error) {
+      console.error('Error optimizing route:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Create route in database
+   * @param {Object} data - Route data
+   * @returns {Object} Saved route
+   */
+  async createRoute(data) {
+    try {
+      const route = new Route(data);
+      return await route.save();
+    } catch (error) {
+      console.error('Error creating route:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update current progress along route
+   * @param {String} routeId - Route ID
+   * @param {Object} currentLocation - Current {latitude, longitude}
+   * @returns {Object} Updated route with progress
+   */
+  async updateProgress(routeId, currentLocation) {
+    try {
+      const route = await Route.findById(routeId);
+      if (!route) throw new Error('Route not found');
+
+      // Calculate distance traveled along route
+      const distanceTraveled = this._calculateDistanceAlongRoute(
+        route.decodedGeometry,
+        currentLocation
+      );
+
+      // Find closest segment
+      const closestSegment = this._findClosestSegment(route.segments, currentLocation);
+
+      // Update progress
+      route.currentProgress.distanceTraveled = distanceTraveled;
+      route.currentProgress.remainingDistance = route.totalDistance * 1000 - distanceTraveled;
+      route.currentProgress.currentSegmentIndex = closestSegment;
+
+      // Recalculate ETA based on progress
+      const remainingDistance = route.currentProgress.remainingDistance;
+      const avgSpeed = 50; // km/h (can be dynamic)
+      const remainingTime = (remainingDistance / 1000 / avgSpeed) * 3600; // seconds
+      route.eta.currentEta = new Date(Date.now() + remainingTime * 1000);
+      route.eta.estimatedArrivalTime = Math.round(remainingTime);
+
+      return await route.save();
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get next turn instruction
+   * @param {String} routeId - Route ID
+   * @returns {Object} Next instruction details
+   */
+  async getNextInstruction(routeId) {
+    try {
+      const route = await Route.findById(routeId);
+      if (!route) throw new Error('Route not found');
+
+      const currentSegmentIndex = route.currentProgress.currentSegmentIndex;
+      const nextSegment = route.segments[currentSegmentIndex];
+
+      if (!nextSegment) {
+        return {
+          instruction: 'Destination reached',
+          distance: 0,
+          direction: 'arrived',
+        };
+      }
+
+      return {
+        instruction: nextSegment.instruction,
+        distance: nextSegment.distance, // meters
+        streetName: nextSegment.name,
+        direction: nextSegment.direction,
+        bearing: nextSegment.bearing,
+        coordinates: nextSegment.coordinates,
+      };
+    } catch (error) {
+      console.error('Error getting next instruction:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Complete route
+   * @param {String} routeId - Route ID
+   * @returns {Object} Completed route
+   */
+  async completeRoute(routeId) {
+    try {
+      const route = await Route.findById(routeId);
+      if (!route) throw new Error('Route not found');
+
+      route.isActive = false;
+      route.completedAt = new Date();
+      route.currentProgress.distanceTraveled = route.totalDistance * 1000;
+      route.currentProgress.remainingDistance = 0;
+
+      return await route.save();
+    } catch (error) {
+      console.error('Error completing route:', error);
+      throw error;
+    }
+  }
+
+  // ==================== PRIVATE HELPERS ====================
+
+  /**
+   * Parse polyline geometry from OSRM response
+   * @private
+   */
+  _decodePolyline(geometry) {
+    if (!geometry) return [];
+    if (typeof geometry === 'string') {
+      // Encoded polyline (precision 5)
+      const coords = polyline.decode(geometry, 5);
+      return coords.map(([lat, lon]) => ({
+        latitude: lat,
+        longitude: lon,
+      }));
+    }
+    // Already decoded (GeoJSON)
+    return geometry.coordinates.map(([lon, lat]) => ({
+      latitude: lat,
+      longitude: lon,
+    }));
+  }
+
+  /**
+   * Parse segments from route legs
+   * @private
+   */
+  _parseSegments(legs) {
+    if (!legs || !Array.isArray(legs)) {
+      console.warn('No legs provided to parseSegments');
+      return [];
+    }
+
+    const segments = [];
+
+    legs.forEach(leg => {
+      if (leg.steps && Array.isArray(leg.steps)) {
+        leg.steps.forEach(step => {
+          segments.push({
+            instruction: this._generateInstruction(step),
+            distance: step.distance,
+            duration: step.duration,
+            direction: step.maneuver?.type || 'continue',
+            name: step.name || 'Unknown Street',
+            bearing: step.maneuver?.bearing_after || 0,
+            coordinates: this._decodePolyline(step.geometry),
+          });
+        });
+      }
+    });
+
+    return segments;
+  }
+
+  /**
+   * Generate human-readable turn instructions
+   * @private
+   */
+  _generateInstruction(step) {
+    const maneuver = step.maneuver;
+    const name = step.name ? ` on ${step.name}` : '';
+    const distance = (step.distance / 1000).toFixed(1);
+
+    if (!maneuver) {
+      return `Go ${distance}km${name}`;
+    }
+
+    const type = maneuver.type;
+    const modifier = maneuver.modifier || '';
+    const typeStr = `${type}${modifier ? ' ' + modifier : ''}`;
+
+    if (type === 'depart') {
+      return `Head ${maneuver.bearing_after}°${name} for ${distance}km`;
+    } else if (type === 'turn' || type === 'merge' || type === 'ramp') {
+      return `${typeStr.charAt(0).toUpperCase() + typeStr.slice(1)}${name} for ${distance}km`;
+    } else if (type === 'arrive') {
+      return `You have arrived at your destination`;
+    }
+
+    return `Go ${distance}km${name}`;
+  }
+
+  /**
+   * Parse waypoints from OSRM response
+   * @private
+   */
+  _parseWaypoints(inputWaypoints, osrmWaypoints) {
+    return inputWaypoints.map((wp, idx) => ({
+      latitude: wp.latitude,
+      longitude: wp.longitude,
+      address: wp.address || wp.name,
+      order: idx,
+      type: idx === 0 ? 'pickup' : idx === inputWaypoints.length - 1 ? 'dropoff' : 'waypoint',
+      hintIndex: osrmWaypoints[idx]?.hint,
+    }));
+  }
+
+  /**
+   * Calculate ETA
+   * @private
+   */
+  _calculateETA(durationSeconds) {
+    const now = new Date();
+    const eta = new Date(now.getTime() + durationSeconds * 1000);
+
+    return {
+      originalEta: eta,
+      currentEta: eta,
+      estimatedArrivalTime: durationSeconds,
+    };
+  }
+
+  /**
+   * Calculate distance along route to current location
+   * @private
+   */
+  _calculateDistanceAlongRoute(routeGeometry, currentLocation) {
+    let totalDistance = 0;
+
+    for (let i = 0; i < routeGeometry.length - 1; i++) {
+      const p1 = routeGeometry[i];
+      const p2 = routeGeometry[i + 1];
+
+      // Simple distance calculation (can use Haversine for accuracy)
+      const dx = p2.longitude - p1.longitude;
+      const dy = p2.latitude - p1.latitude;
+      const segmentDistance = Math.sqrt(dx * dx + dy * dy) * 111000; // Rough meters conversion
+
+      totalDistance += segmentDistance;
+
+      // If we've passed current location, estimate final distance
+      const d = this._haversineDistance(p1.latitude, p1.longitude, currentLocation.latitude, currentLocation.longitude);
+      if (d < 50) {
+        // Within 50 meters
+        return totalDistance;
+      }
+    }
+
+    return totalDistance;
+  }
+
+  /**
+   * Find closest segment to current location
+   * @private
+   */
+  _findClosestSegment(segments, currentLocation) {
+    let closestIdx = 0;
+    let closestDistance = Infinity;
+
+    segments.forEach((segment, idx) => {
+      segment.coordinates.forEach(coord => {
+        const d = this._haversineDistance(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          coord.latitude,
+          coord.longitude
+        );
+
+        if (d < closestDistance) {
+          closestDistance = d;
+          closestIdx = idx;
+        }
+      });
+    });
+
+    return closestIdx;
+  }
+
+  /**
+   * Haversine distance formula (km)
+   * @private
+   */
+  _haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+}
+
+module.exports = new RydinexRoutingService();

@@ -1,0 +1,918 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\URide\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\scripts\\seedPOI.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\scripts\\seedPOI.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\ROUTING_BUG_FIXED.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ROUTING_BUG_FIXED.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\RYDINEX_MAPS_README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:RYDINEX_MAPS_README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\models\\RydinexMap.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\models\\RydinexMap.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\routes\\rydinexMaps.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\routes\\rydinexMaps.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\services\\rydinexMapsService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\services\\rydinexMapsService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\sockets\\rydinexMapsSocket.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\sockets\\rydinexMapsSocket.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\app.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\app.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\models\\LocationHistory.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\models\\LocationHistory.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\admin-dashboard\\src\\components\\RydinexLiveMap.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:admin-dashboard\\src\\components\\RydinexLiveMap.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\driver-app\\DriverApp\\src\\components\\RydinexMap.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:driver-app\\DriverApp\\src\\components\\RydinexMap.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\rider-app\\RiderApp\\src\\components\\RydinexMap.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:rider-app\\RiderApp\\src\\components\\RydinexMap.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\RYDINEX_POI_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\RYDINEX_POI_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\RYDINEX_POI_QUICKSTART.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:RYDINEX_POI_QUICKSTART.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\RYDINEX_POI_INTEGRATION_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:RYDINEX_POI_INTEGRATION_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\SUMMARY_POI_IMPLEMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:SUMMARY_POI_IMPLEMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\POI_QUICK_REFERENCE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:POI_QUICK_REFERENCE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\models\\Route.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\models\\Route.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\services\\rydinexRoutingService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\services\\rydinexRoutingService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\routes\\rydinexRouting.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\routes\\rydinexRouting.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\sockets\\rydinexRoutingSocket.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\sockets\\rydinexRoutingSocket.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\RYDINEX_ROUTING_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\RYDINEX_ROUTING_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\ROUTING_SYSTEM_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ROUTING_SYSTEM_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\models\\Geocode.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\models\\Geocode.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\services\\rydinexGeocodingService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\services\\rydinexGeocodingService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\routes\\rydinexGeocoding.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\routes\\rydinexGeocoding.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\RYDINEX_GEOCODING_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\RYDINEX_GEOCODING_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\GEOCODING_SYSTEM_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:GEOCODING_SYSTEM_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\COMPLETE_PLATFORM_SUMMARY.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:COMPLETE_PLATFORM_SUMMARY.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\QUICK_REFERENCE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:QUICK_REFERENCE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\models\\Traffic.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\models\\Traffic.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\services\\rydinexTrafficService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\services\\rydinexTrafficService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\routes\\rydinexTraffic.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\routes\\rydinexTraffic.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\sockets\\rydinexTrafficSocket.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\sockets\\rydinexTrafficSocket.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\RYDINEX_TRAFFIC_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\RYDINEX_TRAFFIC_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\TRAFFIC_SYSTEM_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TRAFFIC_SYSTEM_COMPLETE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\PRODUCTION_DEPLOYMENT_GUIDE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:PRODUCTION_DEPLOYMENT_GUIDE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\DOCUMENTATION_INDEX.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:DOCUMENTATION_INDEX.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\FINAL_DELIVERY_SUMMARY.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FINAL_DELIVERY_SUMMARY.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\models\\MapIntelligence.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\models\\MapIntelligence.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\services\\rydinexMapIntelligenceService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\services\\rydinexMapIntelligenceService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\routes\\rydinexMapIntelligence.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\routes\\rydinexMapIntelligence.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\backend\\RYDINEX_MAP_INTELLIGENCE_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:backend\\RYDINEX_MAP_INTELLIGENCE_DOCUMENTATION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\MAP_INTELLIGENCE_ADDED.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:MAP_INTELLIGENCE_ADDED.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\URRIDE_COMPLETE_FINAL_DELIVERY.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:URRIDE_COMPLETE_FINAL_DELIVERY.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\COMPLETE_TEST_SUITE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:COMPLETE_TEST_SUITE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\QUICK_TEST_5_MINUTES.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:QUICK_TEST_5_MINUTES.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\DEPLOYMENT_READINESS_CHECKLIST.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:DEPLOYMENT_READINESS_CHECKLIST.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\DO_I_NEED_INTERNAL_TESTING.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:DO_I_NEED_INTERNAL_TESTING.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\2_DAY_INTERNAL_TESTING_PLAN.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:2_DAY_INTERNAL_TESTING_PLAN.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\TESTING_AND_PUBLISHING_DECISION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TESTING_AND_PUBLISHING_DECISION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\FINAL_TESTING_DECISION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FINAL_TESTING_DECISION.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\TESTING_QUICK_REFERENCE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TESTING_QUICK_REFERENCE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\WHERE_TO_TEST_AND_APP_STORE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:WHERE_TO_TEST_AND_APP_STORE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\TESTING_AND_APP_STORE_QUICK_GUIDE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TESTING_AND_APP_STORE_QUICK_GUIDE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\URide\\FINAL_WHERE_TO_TEST_AND_APP_STORE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FINAL_WHERE_TO_TEST_AND_APP_STORE.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ROUTING_BUG_FIXED.md",
+              "DocumentMoniker": "D:\\URide\\ROUTING_BUG_FIXED.md",
+              "RelativeDocumentMoniker": "ROUTING_BUG_FIXED.md",
+              "ToolTip": "D:\\URide\\ROUTING_BUG_FIXED.md",
+              "RelativeToolTip": "ROUTING_BUG_FIXED.md",
+              "ViewState": "AgIAAEIAAAAAAAAAAAAAwFQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T07:19:52.805Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "seedPOI.js",
+              "DocumentMoniker": "D:\\URide\\backend\\scripts\\seedPOI.js",
+              "RelativeDocumentMoniker": "backend\\scripts\\seedPOI.js",
+              "ToolTip": "D:\\URide\\backend\\scripts\\seedPOI.js",
+              "RelativeToolTip": "backend\\scripts\\seedPOI.js",
+              "ViewState": "AgIAAOkAAAAAAAAAAAAuwBIBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:04:19.004Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "POI_QUICK_REFERENCE.md",
+              "DocumentMoniker": "D:\\URide\\POI_QUICK_REFERENCE.md",
+              "RelativeDocumentMoniker": "POI_QUICK_REFERENCE.md",
+              "ToolTip": "D:\\URide\\POI_QUICK_REFERENCE.md",
+              "RelativeToolTip": "POI_QUICK_REFERENCE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIYBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:07:43.601Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 55,
+              "Title": "FINAL_WHERE_TO_TEST_AND_APP_STORE.md",
+              "DocumentMoniker": "D:\\URide\\FINAL_WHERE_TO_TEST_AND_APP_STORE.md",
+              "RelativeDocumentMoniker": "FINAL_WHERE_TO_TEST_AND_APP_STORE.md",
+              "ToolTip": "D:\\URide\\FINAL_WHERE_TO_TEST_AND_APP_STORE.md",
+              "RelativeToolTip": "FINAL_WHERE_TO_TEST_AND_APP_STORE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEIBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:49:36.965Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 54,
+              "Title": "TESTING_AND_APP_STORE_QUICK_GUIDE.md",
+              "DocumentMoniker": "D:\\URide\\TESTING_AND_APP_STORE_QUICK_GUIDE.md",
+              "RelativeDocumentMoniker": "TESTING_AND_APP_STORE_QUICK_GUIDE.md",
+              "ToolTip": "D:\\URide\\TESTING_AND_APP_STORE_QUICK_GUIDE.md",
+              "RelativeToolTip": "TESTING_AND_APP_STORE_QUICK_GUIDE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAANIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:49:04.845Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 53,
+              "Title": "WHERE_TO_TEST_AND_APP_STORE.md",
+              "DocumentMoniker": "D:\\URide\\WHERE_TO_TEST_AND_APP_STORE.md",
+              "RelativeDocumentMoniker": "WHERE_TO_TEST_AND_APP_STORE.md",
+              "ToolTip": "D:\\URide\\WHERE_TO_TEST_AND_APP_STORE.md",
+              "RelativeToolTip": "WHERE_TO_TEST_AND_APP_STORE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOEBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:48:48.486Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 52,
+              "Title": "TESTING_QUICK_REFERENCE.md",
+              "DocumentMoniker": "D:\\URide\\TESTING_QUICK_REFERENCE.md",
+              "RelativeDocumentMoniker": "TESTING_QUICK_REFERENCE.md",
+              "ToolTip": "D:\\URide\\TESTING_QUICK_REFERENCE.md",
+              "RelativeToolTip": "TESTING_QUICK_REFERENCE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:45:21.114Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 51,
+              "Title": "FINAL_TESTING_DECISION.md",
+              "DocumentMoniker": "D:\\URide\\FINAL_TESTING_DECISION.md",
+              "RelativeDocumentMoniker": "FINAL_TESTING_DECISION.md",
+              "ToolTip": "D:\\URide\\FINAL_TESTING_DECISION.md",
+              "RelativeToolTip": "FINAL_TESTING_DECISION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:44:56.686Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 50,
+              "Title": "TESTING_AND_PUBLISHING_DECISION.md",
+              "DocumentMoniker": "D:\\URide\\TESTING_AND_PUBLISHING_DECISION.md",
+              "RelativeDocumentMoniker": "TESTING_AND_PUBLISHING_DECISION.md",
+              "ToolTip": "D:\\URide\\TESTING_AND_PUBLISHING_DECISION.md",
+              "RelativeToolTip": "TESTING_AND_PUBLISHING_DECISION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:44:21.808Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 49,
+              "Title": "2_DAY_INTERNAL_TESTING_PLAN.md",
+              "DocumentMoniker": "D:\\URide\\2_DAY_INTERNAL_TESTING_PLAN.md",
+              "RelativeDocumentMoniker": "2_DAY_INTERNAL_TESTING_PLAN.md",
+              "ToolTip": "D:\\URide\\2_DAY_INTERNAL_TESTING_PLAN.md",
+              "RelativeToolTip": "2_DAY_INTERNAL_TESTING_PLAN.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAANkBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:44:04.127Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 48,
+              "Title": "DO_I_NEED_INTERNAL_TESTING.md",
+              "DocumentMoniker": "D:\\URide\\DO_I_NEED_INTERNAL_TESTING.md",
+              "RelativeDocumentMoniker": "DO_I_NEED_INTERNAL_TESTING.md",
+              "ToolTip": "D:\\URide\\DO_I_NEED_INTERNAL_TESTING.md",
+              "RelativeToolTip": "DO_I_NEED_INTERNAL_TESTING.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIoBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:43:34.316Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 47,
+              "Title": "DEPLOYMENT_READINESS_CHECKLIST.md",
+              "DocumentMoniker": "D:\\URide\\DEPLOYMENT_READINESS_CHECKLIST.md",
+              "RelativeDocumentMoniker": "DEPLOYMENT_READINESS_CHECKLIST.md",
+              "ToolTip": "D:\\URide\\DEPLOYMENT_READINESS_CHECKLIST.md",
+              "RelativeToolTip": "DEPLOYMENT_READINESS_CHECKLIST.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:38:41.112Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 46,
+              "Title": "QUICK_TEST_5_MINUTES.md",
+              "DocumentMoniker": "D:\\URide\\QUICK_TEST_5_MINUTES.md",
+              "RelativeDocumentMoniker": "QUICK_TEST_5_MINUTES.md",
+              "ToolTip": "D:\\URide\\QUICK_TEST_5_MINUTES.md",
+              "RelativeToolTip": "QUICK_TEST_5_MINUTES.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:38:18.832Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 45,
+              "Title": "COMPLETE_TEST_SUITE.md",
+              "DocumentMoniker": "D:\\URide\\COMPLETE_TEST_SUITE.md",
+              "RelativeDocumentMoniker": "COMPLETE_TEST_SUITE.md",
+              "ToolTip": "D:\\URide\\COMPLETE_TEST_SUITE.md",
+              "RelativeToolTip": "COMPLETE_TEST_SUITE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEACAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:38:09.438Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 44,
+              "Title": "URRIDE_COMPLETE_FINAL_DELIVERY.md",
+              "DocumentMoniker": "D:\\URide\\URRIDE_COMPLETE_FINAL_DELIVERY.md",
+              "RelativeDocumentMoniker": "URRIDE_COMPLETE_FINAL_DELIVERY.md",
+              "ToolTip": "D:\\URide\\URRIDE_COMPLETE_FINAL_DELIVERY.md",
+              "RelativeToolTip": "URRIDE_COMPLETE_FINAL_DELIVERY.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGQBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:36:16.162Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 43,
+              "Title": "MAP_INTELLIGENCE_ADDED.md",
+              "DocumentMoniker": "D:\\URide\\MAP_INTELLIGENCE_ADDED.md",
+              "RelativeDocumentMoniker": "MAP_INTELLIGENCE_ADDED.md",
+              "ToolTip": "D:\\URide\\MAP_INTELLIGENCE_ADDED.md",
+              "RelativeToolTip": "MAP_INTELLIGENCE_ADDED.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:35:44.226Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 42,
+              "Title": "RYDINEX_MAP_INTELLIGENCE_DOCUMENTATION.md",
+              "DocumentMoniker": "D:\\URide\\backend\\RYDINEX_MAP_INTELLIGENCE_DOCUMENTATION.md",
+              "RelativeDocumentMoniker": "backend\\RYDINEX_MAP_INTELLIGENCE_DOCUMENTATION.md",
+              "ToolTip": "D:\\URide\\backend\\RYDINEX_MAP_INTELLIGENCE_DOCUMENTATION.md",
+              "RelativeToolTip": "backend\\RYDINEX_MAP_INTELLIGENCE_DOCUMENTATION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:35:07.546Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 41,
+              "Title": "rydinexMapIntelligence.js",
+              "DocumentMoniker": "D:\\URide\\backend\\routes\\rydinexMapIntelligence.js",
+              "RelativeDocumentMoniker": "backend\\routes\\rydinexMapIntelligence.js",
+              "ToolTip": "D:\\URide\\backend\\routes\\rydinexMapIntelligence.js",
+              "RelativeToolTip": "backend\\routes\\rydinexMapIntelligence.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEYBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:34:23.943Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 40,
+              "Title": "rydinexMapIntelligenceService.js",
+              "DocumentMoniker": "D:\\URide\\backend\\services\\rydinexMapIntelligenceService.js",
+              "RelativeDocumentMoniker": "backend\\services\\rydinexMapIntelligenceService.js",
+              "ToolTip": "D:\\URide\\backend\\services\\rydinexMapIntelligenceService.js",
+              "RelativeToolTip": "backend\\services\\rydinexMapIntelligenceService.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMgBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:34:05.909Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 39,
+              "Title": "MapIntelligence.js",
+              "DocumentMoniker": "D:\\URide\\backend\\models\\MapIntelligence.js",
+              "RelativeDocumentMoniker": "backend\\models\\MapIntelligence.js",
+              "ToolTip": "D:\\URide\\backend\\models\\MapIntelligence.js",
+              "RelativeToolTip": "backend\\models\\MapIntelligence.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:33:37.83Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 38,
+              "Title": "FINAL_DELIVERY_SUMMARY.md",
+              "DocumentMoniker": "D:\\URide\\FINAL_DELIVERY_SUMMARY.md",
+              "RelativeDocumentMoniker": "FINAL_DELIVERY_SUMMARY.md",
+              "ToolTip": "D:\\URide\\FINAL_DELIVERY_SUMMARY.md",
+              "RelativeToolTip": "FINAL_DELIVERY_SUMMARY.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAALsBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:27:54.347Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "DOCUMENTATION_INDEX.md",
+              "DocumentMoniker": "D:\\URide\\DOCUMENTATION_INDEX.md",
+              "RelativeDocumentMoniker": "DOCUMENTATION_INDEX.md",
+              "ToolTip": "D:\\URide\\DOCUMENTATION_INDEX.md",
+              "RelativeToolTip": "DOCUMENTATION_INDEX.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAALABAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:26:11.449Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "PRODUCTION_DEPLOYMENT_GUIDE.md",
+              "DocumentMoniker": "D:\\URide\\PRODUCTION_DEPLOYMENT_GUIDE.md",
+              "RelativeDocumentMoniker": "PRODUCTION_DEPLOYMENT_GUIDE.md",
+              "ToolTip": "D:\\URide\\PRODUCTION_DEPLOYMENT_GUIDE.md",
+              "RelativeToolTip": "PRODUCTION_DEPLOYMENT_GUIDE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHwCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:25:44.572Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "TRAFFIC_SYSTEM_COMPLETE.md",
+              "DocumentMoniker": "D:\\URide\\TRAFFIC_SYSTEM_COMPLETE.md",
+              "RelativeDocumentMoniker": "TRAFFIC_SYSTEM_COMPLETE.md",
+              "ToolTip": "D:\\URide\\TRAFFIC_SYSTEM_COMPLETE.md",
+              "RelativeToolTip": "TRAFFIC_SYSTEM_COMPLETE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:23:09.061Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "RYDINEX_TRAFFIC_DOCUMENTATION.md",
+              "DocumentMoniker": "D:\\URide\\backend\\RYDINEX_TRAFFIC_DOCUMENTATION.md",
+              "RelativeDocumentMoniker": "backend\\RYDINEX_TRAFFIC_DOCUMENTATION.md",
+              "ToolTip": "D:\\URide\\backend\\RYDINEX_TRAFFIC_DOCUMENTATION.md",
+              "RelativeToolTip": "backend\\RYDINEX_TRAFFIC_DOCUMENTATION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADMCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:22:36.208Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "rydinexTrafficSocket.js",
+              "DocumentMoniker": "D:\\URide\\backend\\sockets\\rydinexTrafficSocket.js",
+              "RelativeDocumentMoniker": "backend\\sockets\\rydinexTrafficSocket.js",
+              "ToolTip": "D:\\URide\\backend\\sockets\\rydinexTrafficSocket.js",
+              "RelativeToolTip": "backend\\sockets\\rydinexTrafficSocket.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:21:37.946Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "rydinexTraffic.js",
+              "DocumentMoniker": "D:\\URide\\backend\\routes\\rydinexTraffic.js",
+              "RelativeDocumentMoniker": "backend\\routes\\rydinexTraffic.js",
+              "ToolTip": "D:\\URide\\backend\\routes\\rydinexTraffic.js",
+              "RelativeToolTip": "backend\\routes\\rydinexTraffic.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAANkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:21:11.111Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "rydinexTrafficService.js",
+              "DocumentMoniker": "D:\\URide\\backend\\services\\rydinexTrafficService.js",
+              "RelativeDocumentMoniker": "backend\\services\\rydinexTrafficService.js",
+              "ToolTip": "D:\\URide\\backend\\services\\rydinexTrafficService.js",
+              "RelativeToolTip": "backend\\services\\rydinexTrafficService.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAKUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:20:50.937Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "Traffic.js",
+              "DocumentMoniker": "D:\\URide\\backend\\models\\Traffic.js",
+              "RelativeDocumentMoniker": "backend\\models\\Traffic.js",
+              "ToolTip": "D:\\URide\\backend\\models\\Traffic.js",
+              "RelativeToolTip": "backend\\models\\Traffic.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAKYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:20:25.961Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "QUICK_REFERENCE.md",
+              "DocumentMoniker": "D:\\URide\\QUICK_REFERENCE.md",
+              "RelativeDocumentMoniker": "QUICK_REFERENCE.md",
+              "ToolTip": "D:\\URide\\QUICK_REFERENCE.md",
+              "RelativeToolTip": "QUICK_REFERENCE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADoBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:19:26.576Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "COMPLETE_PLATFORM_SUMMARY.md",
+              "DocumentMoniker": "D:\\URide\\COMPLETE_PLATFORM_SUMMARY.md",
+              "RelativeDocumentMoniker": "COMPLETE_PLATFORM_SUMMARY.md",
+              "ToolTip": "D:\\URide\\COMPLETE_PLATFORM_SUMMARY.md",
+              "RelativeToolTip": "COMPLETE_PLATFORM_SUMMARY.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAPUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:18:57.316Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "GEOCODING_SYSTEM_COMPLETE.md",
+              "DocumentMoniker": "D:\\URide\\GEOCODING_SYSTEM_COMPLETE.md",
+              "RelativeDocumentMoniker": "GEOCODING_SYSTEM_COMPLETE.md",
+              "ToolTip": "D:\\URide\\GEOCODING_SYSTEM_COMPLETE.md",
+              "RelativeToolTip": "GEOCODING_SYSTEM_COMPLETE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJ0BAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:17:49.05Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "RYDINEX_GEOCODING_DOCUMENTATION.md",
+              "DocumentMoniker": "D:\\URide\\backend\\RYDINEX_GEOCODING_DOCUMENTATION.md",
+              "RelativeDocumentMoniker": "backend\\RYDINEX_GEOCODING_DOCUMENTATION.md",
+              "ToolTip": "D:\\URide\\backend\\RYDINEX_GEOCODING_DOCUMENTATION.md",
+              "RelativeToolTip": "backend\\RYDINEX_GEOCODING_DOCUMENTATION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD4CAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:17:08.039Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "rydinexGeocoding.js",
+              "DocumentMoniker": "D:\\URide\\backend\\routes\\rydinexGeocoding.js",
+              "RelativeDocumentMoniker": "backend\\routes\\rydinexGeocoding.js",
+              "ToolTip": "D:\\URide\\backend\\routes\\rydinexGeocoding.js",
+              "RelativeToolTip": "backend\\routes\\rydinexGeocoding.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4BAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:16:27.553Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "rydinexGeocodingService.js",
+              "DocumentMoniker": "D:\\URide\\backend\\services\\rydinexGeocodingService.js",
+              "RelativeDocumentMoniker": "backend\\services\\rydinexGeocodingService.js",
+              "ToolTip": "D:\\URide\\backend\\services\\rydinexGeocodingService.js",
+              "RelativeToolTip": "backend\\services\\rydinexGeocodingService.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOoBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:16:12.46Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "Geocode.js",
+              "DocumentMoniker": "D:\\URide\\backend\\models\\Geocode.js",
+              "RelativeDocumentMoniker": "backend\\models\\Geocode.js",
+              "ToolTip": "D:\\URide\\backend\\models\\Geocode.js",
+              "RelativeToolTip": "backend\\models\\Geocode.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:15:47.592Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "ROUTING_SYSTEM_COMPLETE.md",
+              "DocumentMoniker": "D:\\URide\\ROUTING_SYSTEM_COMPLETE.md",
+              "RelativeDocumentMoniker": "ROUTING_SYSTEM_COMPLETE.md",
+              "ToolTip": "D:\\URide\\ROUTING_SYSTEM_COMPLETE.md",
+              "RelativeToolTip": "ROUTING_SYSTEM_COMPLETE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAKABAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:12:47.632Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "RYDINEX_ROUTING_DOCUMENTATION.md",
+              "DocumentMoniker": "D:\\URide\\backend\\RYDINEX_ROUTING_DOCUMENTATION.md",
+              "RelativeDocumentMoniker": "backend\\RYDINEX_ROUTING_DOCUMENTATION.md",
+              "ToolTip": "D:\\URide\\backend\\RYDINEX_ROUTING_DOCUMENTATION.md",
+              "RelativeToolTip": "backend\\RYDINEX_ROUTING_DOCUMENTATION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHoCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:11:25.556Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "rydinexRoutingSocket.js",
+              "DocumentMoniker": "D:\\URide\\backend\\sockets\\rydinexRoutingSocket.js",
+              "RelativeDocumentMoniker": "backend\\sockets\\rydinexRoutingSocket.js",
+              "ToolTip": "D:\\URide\\backend\\sockets\\rydinexRoutingSocket.js",
+              "RelativeToolTip": "backend\\sockets\\rydinexRoutingSocket.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACsBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:10:25.599Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "rydinexRouting.js",
+              "DocumentMoniker": "D:\\URide\\backend\\routes\\rydinexRouting.js",
+              "RelativeDocumentMoniker": "backend\\routes\\rydinexRouting.js",
+              "ToolTip": "D:\\URide\\backend\\routes\\rydinexRouting.js",
+              "RelativeToolTip": "backend\\routes\\rydinexRouting.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:09:56.945Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "rydinexRoutingService.js",
+              "DocumentMoniker": "D:\\URide\\backend\\services\\rydinexRoutingService.js",
+              "RelativeDocumentMoniker": "backend\\services\\rydinexRoutingService.js",
+              "ToolTip": "D:\\URide\\backend\\services\\rydinexRoutingService.js",
+              "RelativeToolTip": "backend\\services\\rydinexRoutingService.js",
+              "ViewState": "AgIAANEBAAAAAAAAAIBJwNMBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:09:28.855Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Route.js",
+              "DocumentMoniker": "D:\\URide\\backend\\models\\Route.js",
+              "RelativeDocumentMoniker": "backend\\models\\Route.js",
+              "ToolTip": "D:\\URide\\backend\\models\\Route.js",
+              "RelativeToolTip": "backend\\models\\Route.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T06:09:00.623Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "SUMMARY_POI_IMPLEMENTATION.md",
+              "DocumentMoniker": "D:\\URide\\SUMMARY_POI_IMPLEMENTATION.md",
+              "RelativeDocumentMoniker": "SUMMARY_POI_IMPLEMENTATION.md",
+              "ToolTip": "D:\\URide\\SUMMARY_POI_IMPLEMENTATION.md",
+              "RelativeToolTip": "SUMMARY_POI_IMPLEMENTATION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOwBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:07:09.822Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "RYDINEX_POI_INTEGRATION_COMPLETE.md",
+              "DocumentMoniker": "D:\\URide\\RYDINEX_POI_INTEGRATION_COMPLETE.md",
+              "RelativeDocumentMoniker": "RYDINEX_POI_INTEGRATION_COMPLETE.md",
+              "ToolTip": "D:\\URide\\RYDINEX_POI_INTEGRATION_COMPLETE.md",
+              "RelativeToolTip": "RYDINEX_POI_INTEGRATION_COMPLETE.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAALIBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:06:09.576Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "RYDINEX_POI_QUICKSTART.md",
+              "DocumentMoniker": "D:\\URide\\RYDINEX_POI_QUICKSTART.md",
+              "RelativeDocumentMoniker": "RYDINEX_POI_QUICKSTART.md",
+              "ToolTip": "D:\\URide\\RYDINEX_POI_QUICKSTART.md",
+              "RelativeToolTip": "RYDINEX_POI_QUICKSTART.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGoBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:05:38.208Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "RYDINEX_POI_DOCUMENTATION.md",
+              "DocumentMoniker": "D:\\URide\\backend\\RYDINEX_POI_DOCUMENTATION.md",
+              "RelativeDocumentMoniker": "backend\\RYDINEX_POI_DOCUMENTATION.md",
+              "ToolTip": "D:\\URide\\backend\\RYDINEX_POI_DOCUMENTATION.md",
+              "RelativeToolTip": "backend\\RYDINEX_POI_DOCUMENTATION.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T06:04:56.673Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "rydinexMaps.js",
+              "DocumentMoniker": "D:\\URide\\backend\\routes\\rydinexMaps.js",
+              "RelativeDocumentMoniker": "backend\\routes\\rydinexMaps.js",
+              "ToolTip": "D:\\URide\\backend\\routes\\rydinexMaps.js",
+              "RelativeToolTip": "backend\\routes\\rydinexMaps.js",
+              "ViewState": "AgIAALYAAAAAAAAAAAAAALYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T03:09:40.938Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "rydinexMapsService.js",
+              "DocumentMoniker": "D:\\URide\\backend\\services\\rydinexMapsService.js",
+              "RelativeDocumentMoniker": "backend\\services\\rydinexMapsService.js",
+              "ToolTip": "D:\\URide\\backend\\services\\rydinexMapsService.js",
+              "RelativeToolTip": "backend\\services\\rydinexMapsService.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T03:09:49.57Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "rydinexMapsSocket.js",
+              "DocumentMoniker": "D:\\URide\\backend\\sockets\\rydinexMapsSocket.js",
+              "RelativeDocumentMoniker": "backend\\sockets\\rydinexMapsSocket.js",
+              "ToolTip": "D:\\URide\\backend\\sockets\\rydinexMapsSocket.js",
+              "RelativeToolTip": "backend\\sockets\\rydinexMapsSocket.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T03:10:12.01Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "app.js",
+              "DocumentMoniker": "D:\\URide\\backend\\app.js",
+              "RelativeDocumentMoniker": "backend\\app.js",
+              "ToolTip": "D:\\URide\\backend\\app.js",
+              "RelativeToolTip": "backend\\app.js",
+              "ViewState": "AgIAAG0AAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T03:10:29.065Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "RYDINEX_MAPS_README.md",
+              "DocumentMoniker": "D:\\URide\\RYDINEX_MAPS_README.md",
+              "RelativeDocumentMoniker": "RYDINEX_MAPS_README.md",
+              "ToolTip": "D:\\URide\\RYDINEX_MAPS_README.md",
+              "RelativeToolTip": "RYDINEX_MAPS_README.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADYBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-03-10T03:13:37.496Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RydinexMap.js",
+              "DocumentMoniker": "D:\\URide\\backend\\models\\RydinexMap.js",
+              "RelativeDocumentMoniker": "backend\\models\\RydinexMap.js",
+              "ToolTip": "D:\\URide\\backend\\models\\RydinexMap.js",
+              "RelativeToolTip": "backend\\models\\RydinexMap.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T03:09:49.446Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "LocationHistory.js",
+              "DocumentMoniker": "D:\\URide\\backend\\models\\LocationHistory.js",
+              "RelativeDocumentMoniker": "backend\\models\\LocationHistory.js",
+              "ToolTip": "D:\\URide\\backend\\models\\LocationHistory.js",
+              "RelativeToolTip": "backend\\models\\LocationHistory.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-03-10T03:09:49.111Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "RydinexMap.tsx",
+              "DocumentMoniker": "D:\\URide\\rider-app\\RiderApp\\src\\components\\RydinexMap.tsx",
+              "RelativeDocumentMoniker": "rider-app\\RiderApp\\src\\components\\RydinexMap.tsx",
+              "ToolTip": "D:\\URide\\rider-app\\RiderApp\\src\\components\\RydinexMap.tsx",
+              "RelativeToolTip": "rider-app\\RiderApp\\src\\components\\RydinexMap.tsx",
+              "ViewState": "AgIAAEYCAAAAAAAAAIBJwEgCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-03-10T03:12:27.192Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "RydinexMap.tsx",
+              "DocumentMoniker": "D:\\URide\\driver-app\\DriverApp\\src\\components\\RydinexMap.tsx",
+              "RelativeDocumentMoniker": "driver-app\\DriverApp\\src\\components\\RydinexMap.tsx",
+              "ToolTip": "D:\\URide\\driver-app\\DriverApp\\src\\components\\RydinexMap.tsx",
+              "RelativeToolTip": "driver-app\\DriverApp\\src\\components\\RydinexMap.tsx",
+              "ViewState": "AgIAAKQBAAAAAAAAAIBJwKYBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-03-10T03:12:15.162Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "RydinexLiveMap.tsx",
+              "DocumentMoniker": "D:\\URide\\admin-dashboard\\src\\components\\RydinexLiveMap.tsx",
+              "RelativeDocumentMoniker": "admin-dashboard\\src\\components\\RydinexLiveMap.tsx",
+              "ToolTip": "D:\\URide\\admin-dashboard\\src\\components\\RydinexLiveMap.tsx",
+              "RelativeToolTip": "admin-dashboard\\src\\components\\RydinexLiveMap.tsx",
+              "ViewState": "AgIAACUCAAAAAAAAAABRwCgCAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-03-10T03:11:05.392Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

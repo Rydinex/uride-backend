@@ -1,0 +1,461 @@
+.page {
+  min-height: 100vh;
+  padding: 1.4rem;
+  color: #132231;
+  background:
+    radial-gradient(1400px 680px at -12% -20%, #d6f3ea 0%, transparent 60%),
+    radial-gradient(1100px 660px at 105% -18%, #ffe2ca 0%, transparent 54%),
+    linear-gradient(180deg, #fcfef7 0%, #f4f3ea 43%, #f6f9ff 100%);
+  font-family: var(--font-manrope), sans-serif;
+}
+
+.hero,
+.section,
+.footer {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.hero {
+  border: 1px solid #d7decf;
+  border-radius: 1.8rem;
+  padding: 1.2rem;
+  background: color-mix(in srgb, #ffffff 86%, #eef5eb 14%);
+  box-shadow: 0 20px 38px rgba(18, 24, 31, 0.12);
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brandMark {
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.8rem;
+  font-family: var(--font-sora), sans-serif;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(132deg, #0f766e 0%, #0284c7 100%);
+}
+
+.brandName {
+  margin: 0;
+  font-family: var(--font-sora), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.brandSub {
+  margin: 0;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #56687b;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.nav a {
+  opacity: 0.88;
+}
+
+.nav a:hover {
+  opacity: 1;
+}
+
+.heroGrid {
+  margin-top: 1.45rem;
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 0.95rem;
+}
+
+.heroCopy > * {
+  opacity: 0;
+  animation: reveal 620ms ease forwards;
+}
+
+.heroCopy > *:nth-child(1) {
+  animation-delay: 70ms;
+}
+
+.heroCopy > *:nth-child(2) {
+  animation-delay: 160ms;
+}
+
+.heroCopy > *:nth-child(3) {
+  animation-delay: 250ms;
+}
+
+.heroCopy > *:nth-child(4) {
+  animation-delay: 340ms;
+}
+
+.heroCopy > *:nth-child(5) {
+  animation-delay: 430ms;
+}
+
+.kicker {
+  margin: 0;
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid #bcd9d4;
+  background: #effcf8;
+  color: #0f766e;
+  padding: 0.34rem 0.66rem;
+  font-size: 0.77rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.heroCopy h1 {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-sora), sans-serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.03;
+  max-width: 18ch;
+  letter-spacing: -0.02em;
+}
+
+.heroCopy p {
+  margin: 0.9rem 0 0;
+  font-size: 1.03rem;
+  color: #45586a;
+  max-width: 58ch;
+}
+
+.ctaRow {
+  margin-top: 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.72rem;
+}
+
+.primaryCta,
+.secondaryCta {
+  border-radius: 0.78rem;
+  padding: 0.75rem 1rem;
+  font-weight: 800;
+  transition: transform 170ms ease;
+}
+
+.primaryCta {
+  color: #ffffff;
+  background: linear-gradient(130deg, #0f766e 0%, #0ea5a8 55%, #0284c7 100%);
+  box-shadow: 0 14px 28px rgba(15, 118, 110, 0.26);
+}
+
+.secondaryCta {
+  border: 1px solid #ccd8c9;
+  background: #f8fbf4;
+  color: #1d2d3d;
+}
+
+.primaryCta:hover,
+.secondaryCta:hover {
+  transform: translateY(-2px);
+}
+
+.liveText {
+  margin-top: 1rem;
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #274357;
+}
+
+.livePanel {
+  border: 1px solid #d6dfd1;
+  border-radius: 1rem;
+  background: linear-gradient(160deg, #ffffff 0%, #eef4f4 100%);
+  padding: 1rem;
+  animation: floaty 6s ease-in-out infinite;
+}
+
+.liveEyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.metricGrid {
+  margin-top: 0.7rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.metricGrid article {
+  border: 1px solid #dce3d8;
+  border-radius: 0.8rem;
+  background: #ffffff;
+  padding: 0.75rem;
+}
+
+.metricGrid p {
+  margin: 0;
+  font-family: var(--font-sora), sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.metricGrid span {
+  color: #516273;
+  font-size: 0.84rem;
+}
+
+.liveDemand {
+  margin: 0.85rem 0 0;
+  color: #3e4d5d;
+}
+
+.section {
+  margin-top: 1.2rem;
+  border: 1px solid #d8dfd2;
+  border-radius: 1.35rem;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.sectionHeading p {
+  margin: 0;
+  font-size: 0.77rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #607589;
+}
+
+.sectionHeading h2 {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-sora), sans-serif;
+  font-size: clamp(1.45rem, 2.5vw, 2.2rem);
+  line-height: 1.1;
+}
+
+.pillarGrid,
+.airportGrid,
+.appGrid,
+.roadmapGrid {
+  margin-top: 0.95rem;
+  display: grid;
+  gap: 0.82rem;
+}
+
+.pillarGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pillarCard {
+  opacity: 0;
+  animation: reveal 600ms ease forwards;
+  border: 1px solid #dbe3d6;
+  border-radius: 1rem;
+  background: linear-gradient(148deg, #ffffff 0%, #f6faf6 100%);
+  padding: 0.9rem;
+}
+
+.pillarCard h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.pillarCard p {
+  margin: 0.6rem 0 0;
+  color: #4d5f70;
+}
+
+.airportGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.airportCard {
+  border: 1px solid #dce4d8;
+  border-radius: 0.95rem;
+  background: #f7fbff;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.airportCode {
+  margin: 0;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.2rem 0.56rem;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%);
+}
+
+.airportCard h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.airportCard p {
+  margin: 0;
+  color: #496072;
+}
+
+.airportCard span {
+  color: #5f7184;
+  font-size: 0.86rem;
+}
+
+.appGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.appCard {
+  border: 1px solid #dae2d5;
+  border-radius: 1rem;
+  background: linear-gradient(150deg, #ffffff 0%, #f5faf3 100%);
+  padding: 1rem;
+}
+
+.appCard h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.appCard p {
+  margin: 0.65rem 0 0;
+  color: #4b5d6e;
+}
+
+.appActions {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.roadmapGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.roadmapCard {
+  border: 1px solid #d9e1d4;
+  border-radius: 0.92rem;
+  background: #f8fbf7;
+  padding: 0.9rem;
+}
+
+.roadmapCard span {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(130deg, #0f766e 0%, #f97316 100%);
+}
+
+.roadmapCard h3 {
+  margin: 0.68rem 0 0;
+}
+
+.roadmapCard p {
+  margin: 0.45rem 0 0;
+  color: #4d5e6f;
+}
+
+.footer {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  color: #465869;
+  font-size: 0.92rem;
+  padding-bottom: 1rem;
+}
+
+.footer p {
+  margin: 0;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floaty {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1060px) {
+  .heroGrid,
+  .pillarGrid,
+  .airportGrid,
+  .appGrid,
+  .roadmapGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .livePanel {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 0.9rem;
+  }
+
+  .hero,
+  .section {
+    padding: 0.9rem;
+    border-radius: 1rem;
+  }
+
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav {
+    font-size: 0.88rem;
+  }
+}
