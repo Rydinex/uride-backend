@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Memurai",
+      "type": "shell",
+      "command": "taskkill /IM memurai.exe /F 2>nul & \"C:\\Users\\imifo\\memurai\\Memurai\\memurai.exe\" \"C:\\Users\\imifo\\memurai\\Memurai\\Samples\\memurai.conf\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Stop Memurai",
+      "type": "shell",
+      "command": "taskkill /IM memurai.exe /F 2>nul",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Start Backend",
+      "type": "shell",
+      "command": "npm start",
+      "options": {
+        "cwd": "D:/Uride/backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Start Frontend",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "D:/Uride/admin-dashboard"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Start All Services",
+      "dependsOn": [
+        "Start Memurai",
+        "Start Backend",
+        "Start Frontend"
+      ],
+      "dependsOrder": "sequence"
+    }
+  ]
+}
