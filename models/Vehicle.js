@@ -32,6 +32,23 @@ const VehicleSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+
+    // ⭐ NEW FIELD: determines pricing + trip assignment
+    rideCategory: {
+      type: String,
+      enum: [
+        'rydine_regular',
+        'rydine_comfort',
+        'rydine_xl',
+        'rydine_green',
+        'black_car',
+        'black_suv'
+      ],
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+
     powertrain: {
       type: String,
       enum: ['gasoline', 'diesel', 'hybrid', 'electric'],

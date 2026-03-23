@@ -1,5 +1,58 @@
 const SUPPORTED_EVENT_CODES = ['UNITED_CENTER', 'WRIGLEY_FIELD', 'SOLDIER_FIELD'];
 
+const ORD_AIRPORT_POLYGON = [
+  [41.9957, -87.9336],
+  [41.9979, -87.9078],
+  [41.9868, -87.8849],
+  [41.9649, -87.8847],
+  [41.9554, -87.9034],
+  [41.9557, -87.9334],
+  [41.9728, -87.9497],
+  [41.9891, -87.9494],
+];
+
+const ORD_T1_POLYGON = [
+  [41.9773, -87.9098],
+  [41.9779, -87.9078],
+  [41.9767, -87.9071],
+  [41.9761, -87.9091],
+];
+
+const ORD_T2_POLYGON = [
+  [41.9779, -87.9078],
+  [41.9785, -87.9057],
+  [41.9773, -87.9050],
+  [41.9767, -87.9071],
+];
+
+const ORD_T3_POLYGON = [
+  [41.9785, -87.9057],
+  [41.9791, -87.9036],
+  [41.9779, -87.9030],
+  [41.9773, -87.9050],
+];
+
+const ORD_TERMINALS = [
+  {
+    terminal: 1,
+    polygon: ORD_T1_POLYGON,
+  },
+  {
+    terminal: 2,
+    polygon: ORD_T2_POLYGON,
+  },
+  {
+    terminal: 3,
+    polygon: ORD_T3_POLYGON,
+  },
+  {
+    terminal: 5,
+    polygon: [
+      /* lat/lng points */
+    ],
+  },
+];
+
 const AIRPORT_GEOFENCES = {
   ORD: {
     code: 'ORD',
@@ -17,12 +70,7 @@ const AIRPORT_GEOFENCES = {
         'Coordinate exact meeting point using pickup zone code.',
       ],
     },
-    polygon: [
-      { latitude: 41.9928, longitude: -87.9515 },
-      { latitude: 41.9928, longitude: -87.8668 },
-      { latitude: 41.9498, longitude: -87.8668 },
-      { latitude: 41.9498, longitude: -87.9515 },
-    ],
+    polygon: ORD_AIRPORT_POLYGON,
     tnpLots: {
       regular: {
         code: 'ORD_REGULAR_LOT',
@@ -367,22 +415,40 @@ function normalizeRideCategory(rideCategory) {
     .trim()
     .toLowerCase();
 
+  if (normalized === 'black') {
+    return 'black_car';
+  }
+
+  if (normalized === 'standard') {
+    return 'regular';
+  }
+
   return ['black_car', 'black_suv', 'suv', 'rydinex_comfort', 'rydinex_xl', 'comfort', 'xl'].includes(normalized)
     ? 'black_car'
     : 'regular';
 }
 
 function isPointInsidePolygon(point, polygon) {
-  if (!Array.isArray(polygon) || polygon.length < 3) {
+  const normalizedPolygon = (Array.isArray(polygon) ? polygon : [])
+    .map(vertex => {
+      if (Array.isArray(vertex) && vertex.length >= 2) {
+        return normalizePoint({ latitude: vertex[0], longitude: vertex[1] });
+      }
+
+      return normalizePoint(vertex);
+    })
+    .filter(Boolean);
+
+  if (normalizedPolygon.length < 3) {
     return false;
   }
 
   let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i].longitude;
-    const yi = polygon[i].latitude;
-    const xj = polygon[j].longitude;
-    const yj = polygon[j].latitude;
+  for (let i = 0, j = normalizedPolygon.length - 1; i < normalizedPolygon.length; j = i++) {
+    const xi = normalizedPolygon[i].longitude;
+    const yi = normalizedPolygon[i].latitude;
+    const xj = normalizedPolygon[j].longitude;
+    const yj = normalizedPolygon[j].latitude;
 
     const intersects =
       yi > point.latitude !== yj > point.latitude &&
@@ -394,6 +460,25 @@ function isPointInsidePolygon(point, polygon) {
   }
 
   return inside;
+}
+
+function pointInPolygon([latitude, longitude], polygon) {
+  const normalizedPoint = normalizePoint({ latitude, longitude });
+  if (!normalizedPoint) {
+    return false;
+  }
+
+  const normalizedPolygon = (Array.isArray(polygon) ? polygon : [])
+    .map(vertex => {
+      if (Array.isArray(vertex) && vertex.length >= 2) {
+        return normalizePoint({ latitude: vertex[0], longitude: vertex[1] });
+      }
+
+      return normalizePoint(vertex);
+    })
+    .filter(Boolean);
+
+  return isPointInsidePolygon(normalizedPoint, normalizedPolygon);
 }
 
 function getChicagoDateParts(referenceDate = new Date()) {
@@ -457,6 +542,134 @@ function getAirportByPoint(point) {
   }
 
   return null;
+}
+
+function getOrdTerminalByPoint(point) {
+  const normalizedPoint = normalizePoint(point);
+  if (!normalizedPoint) {
+    return null;
+  }
+
+  const ord = AIRPORT_GEOFENCES.ORD;
+  if (!ord || !isPointInsidePolygon(normalizedPoint, ord.polygon)) {
+    return null;
+  }
+
+  for (const terminalArea of ORD_TERMINALS) {
+    if (isPointInsidePolygon(normalizedPoint, terminalArea.polygon)) {
+      return {
+        airportCode: ord.code,
+        airportName: ord.name,
+        terminal: terminalArea.terminal,
+        polygon: terminalArea.polygon,
+      };
+    }
+  }
+
+  return {
+    airportCode: ord.code,
+    airportName: ord.name,
+    terminal: null,
+    polygon: null,
+  };
+}
+
+function getORDTerminalByPoint({ latitude, longitude }) {
+  for (const t of ORD_TERMINALS) {
+    if (pointInPolygon([latitude, longitude], t.polygon)) {
+      return t.terminal;
+    }
+  }
+  return null;
+}
+
+function getORDPickupRules(terminal, rideCategory) {
+  const normalizedRideCategory = String(rideCategory || '').trim().toLowerCase();
+  const isBlack = ['black_car', 'black_suv'].includes(normalizedRideCategory);
+
+  if (terminal === 5) {
+    return isBlack
+      ? { allowed: true, level: 'arrivals', lane: 'middle', door: '5D' }
+      : {
+          allowed: false,
+          reason: 'Standard vehicles cannot pick up at ORD Terminal 5. Redirect rider to Terminal 2 or 3.',
+        };
+  }
+
+  if (isBlack) {
+    return {
+      allowed: true,
+      level: 'arrivals',
+      lane: 'middle',
+      doors: [1, 2, 3],
+    };
+  }
+
+  return {
+    allowed: true,
+    level: 'departures',
+    lane: 'rideshare',
+    doors: [1, 2, 3],
+  };
+}
+
+function getMDWTerminalByPoint({ latitude, longitude }) {
+  const point = { latitude, longitude };
+  const airport = getAirportByPoint(point);
+
+  if (!airport || airport.code !== 'MDW') {
+    return null;
+  }
+
+  const pickupZoneContext = getAirportPickupZoneByPoint(point);
+  const zoneCode = pickupZoneContext?.zone?.code || null;
+
+  if (zoneCode === 'MDW_PREMIUM_LANE') {
+    return 1;
+  }
+
+  if (zoneCode === 'MDW_ZONE_A') {
+    return 3;
+  }
+
+  return null;
+}
+
+function getMDWPickupRules(rideCategory) {
+  const normalizedRideCategory = String(rideCategory || '').trim().toLowerCase();
+  const isBlack = ['black_car', 'black_suv'].includes(normalizedRideCategory);
+
+  if (isBlack) {
+    return {
+      allowed: true,
+      level: 'arrivals',
+      lane: 'commercial',
+      pickupLane: 'commercial',
+      doors: [1, 2],
+    };
+  }
+
+  return {
+    allowed: true,
+    level: 'arrivals',
+    lane: 'middle',
+    pickupLane: 'middle',
+    doors: [3],
+  };
+}
+
+function getMDWStagingRules(queueGroup) {
+  if (queueGroup === 'black') {
+    return {
+      lotCode: 'MDW_LIVERY_LOT',
+      lotName: 'MDW Commercial / Livery Staging Lot',
+    };
+  }
+
+  return {
+    lotCode: 'MDW_STANDARD_LOT',
+    lotName: 'MDW Standard Rideshare Staging Lot',
+  };
 }
 
 function getAirportLotByPoint(point, rideCategory = 'regular') {
@@ -675,8 +888,15 @@ module.exports = {
   SUPPORTED_EVENT_CODES,
   AIRPORT_GEOFENCES,
   EVENT_GEOFENCES,
+  ORD_TERMINALS,
   normalizeRideCategory,
   getAirportByPoint,
+  getOrdTerminalByPoint,
+  getORDTerminalByPoint,
+  getORDPickupRules,
+  getMDWTerminalByPoint,
+  getMDWPickupRules,
+  getMDWStagingRules,
   getAirportLotByPoint,
   getAirportPickupZoneByPoint,
   getEventByPoint,

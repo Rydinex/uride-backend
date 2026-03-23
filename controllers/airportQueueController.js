@@ -6,6 +6,11 @@ const {
 const {
   normalizeRideCategory,
   getAirportByPoint,
+  getORDTerminalByPoint,
+  getMDWTerminalByPoint,
+  getORDPickupRules,
+  getMDWPickupRules,
+  getMDWStagingRules,
   getAirportLotByPoint,
   getAirportPickupZoneByPoint,
   getEventByPoint,
@@ -43,6 +48,32 @@ async function enterQueue(req, res) {
       return res.status(400).json({ message: 'driverId is required.' });
     }
 
+    // Determine queue group based on ride category
+    let queueGroup;
+
+    if (['black_car', 'black_suv'].includes(rideCategory)) {
+      queueGroup = 'black';
+    } else {
+      queueGroup = 'standard';
+    }
+
+    // MDW staging enforcement
+    if (airportCode === 'MDW') {
+      const stagingRules = getMDWStagingRules(queueGroup);
+
+      const lotContext = getAirportLotByPoint(
+        { latitude, longitude },
+        queueGroup
+      );
+
+      if (!lotContext || !lotContext.inSelectedLot) {
+        return res.status(403).json({
+          message: 'Driver must be inside the correct MDW staging lot.',
+          requiredLot: stagingRules,
+        });
+      }
+    }
+
     const queueEntry = await enterAirportQueue({
       driverId,
       latitude,
@@ -51,6 +82,7 @@ async function enterQueue(req, res) {
       eventCode,
       queueType,
       rideCategory,
+      queueGroup,
     });
 
     await createDriverLog({
@@ -166,6 +198,29 @@ async function getAirportPickupInstructions(req, res) {
 
     const airport = getAirportByPoint({ latitude, longitude });
     if (airport) {
+      const terminal = airport.code === 'ORD'
+        ? getORDTerminalByPoint({ latitude, longitude })
+        : airport.code === 'MDW'
+        ? getMDWTerminalByPoint({ latitude, longitude })
+        : null;
+
+      let pickupRules = null;
+
+      if (airport.code === 'ORD') {
+        pickupRules = getORDPickupRules(terminal, rideCategory);
+      }
+
+      if (airport.code === 'MDW') {
+        pickupRules = getMDWPickupRules(rideCategory);
+      }
+
+      if (pickupRules && !pickupRules.allowed) {
+        return res.status(403).json({
+          message: pickupRules.reason,
+          terminal,
+        });
+      }
+
       const lotContext = getAirportLotByPoint({ latitude, longitude }, queueGroup);
       const pickupZoneContext = getAirportPickupZoneByPoint({ latitude, longitude });
       const instructions = airport.pickupInstructions?.[queueGroup] || [];
@@ -179,6 +234,7 @@ async function getAirportPickupInstructions(req, res) {
           name: airport.name,
         },
         event: null,
+        terminal,
         queueGroup,
         requiredLot: lotContext
           ? {
@@ -195,7 +251,7 @@ async function getAirportPickupInstructions(req, res) {
             }
           : null,
         stagingArea: null,
-        pickupLane: null,
+        pickupLane: pickupRules,
         instructions,
       });
     }

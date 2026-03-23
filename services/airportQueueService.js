@@ -553,7 +553,7 @@ async function assignDriverFromOperationsQueue({
     if (typeof isDriverEligible === 'function') {
       let isEligible = false;
       try {
-        isEligible = Boolean(await isDriverEligible(entry.driver));
+        isEligible = Boolean(await isDriverEligible(entry.driver, entry));
       } catch (_error) {
         isEligible = false;
       }

@@ -1,7 +1,14 @@
 const Driver = require('../models/Driver');
 const Trip = require('../models/Trip');
 const { queryNearbyDrivers } = require('./activeDriversStore');
-const { getOperationsContextByPoint } = require('./airportGeofenceService');
+const {
+  getOperationsContextByPoint,
+  getAirportByPoint,
+  getORDTerminalByPoint,
+  getMDWTerminalByPoint,
+  getORDPickupRules,
+  getMDWPickupRules,
+} = require('./airportGeofenceService');
 const { assignDriverFromOperationsQueue } = require('./airportQueueService');
 const { normalizeRideCategory, isPremiumRideCategory } = require('./configService');
 const { evaluateDriverChicagoRequirements } = require('./complianceReportingService');
@@ -58,6 +65,30 @@ async function findAvailableNearbyDriver({
   teenPickup = false,
 }) {
   const queueGroup = toQueueGroup(rideCategory);
+  const queueGroupLabel = ['black_car', 'black_suv'].includes(String(rideCategory || '').trim().toLowerCase())
+    ? 'black'
+    : 'standard';
+  const pickupPoint = {
+    latitude: pickup.latitude,
+    longitude: pickup.longitude,
+  };
+  const airport = getAirportByPoint(pickupPoint);
+  const terminal = airport?.code === 'ORD' ? getORDTerminalByPoint(pickupPoint) : null;
+  const mdwTerminal = airport?.code === 'MDW' ? getMDWTerminalByPoint(pickupPoint) : null;
+  let pickupRules = null;
+
+  if (airport?.code === 'ORD') {
+    pickupRules = getORDPickupRules(terminal, rideCategory);
+  }
+
+  if (airport?.code === 'MDW') {
+    pickupRules = getMDWPickupRules(rideCategory);
+  }
+
+  if (airport?.code === 'ORD' && terminal === 5 && queueGroupLabel === 'standard') {
+    return null;
+  }
+
   const operationsContext = getOperationsContextByPoint(pickup, {
     rideCategory,
   });
@@ -74,9 +105,29 @@ async function findAvailableNearbyDriver({
       queueGroup,
       excludedDriverIds,
       tripId,
-      isDriverEligible: candidateDriver =>
-        driverSupportsTripRequirements(candidateDriver, tripRequirements) &&
-        driverMeetsPremiumServiceCompliance(candidateDriver, rideCategory),
+      isDriverEligible: (candidateDriver, queueEntry) => {
+        const baseEligibility =
+          driverSupportsTripRequirements(candidateDriver, tripRequirements) &&
+          driverMeetsPremiumServiceCompliance(candidateDriver, rideCategory);
+
+        if (!baseEligibility) {
+          return false;
+        }
+
+        if (airport?.code === 'MDW') {
+          const pickupZoneCode = String(queueEntry?.pickupZoneCode || '');
+
+          if (pickupRules?.pickupLane === 'middle') {
+            return pickupZoneCode === 'MDW_ZONE_A';
+          }
+
+          if (pickupRules?.pickupLane === 'commercial') {
+            return pickupZoneCode === 'MDW_PREMIUM_LANE';
+          }
+        }
+
+        return true;
+      },
     });
 
     if (queueMatch) {
@@ -90,6 +141,9 @@ async function findAvailableNearbyDriver({
         queueAirportCode: queueMatch.airportCode,
         queueEventCode: null,
         queuePosition: queueMatch.queuePosition,
+        terminal,
+        mdwTerminal,
+        pickupRules,
         pickupZoneCode: queueMatch.pickupZoneCode,
       };
     }

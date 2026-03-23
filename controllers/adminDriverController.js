@@ -117,6 +117,7 @@ async function reviewDriver(req, res) {
       }
 
       driver.status = 'approved';
+      driver.canAccessAirport = driver.driverType === 'professional';
       driver.rejectionReason = null;
     } else {
       driver.status = 'rejected';

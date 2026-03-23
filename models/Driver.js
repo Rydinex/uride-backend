@@ -135,31 +135,45 @@ const DriverSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    // ⭐ NEW FIELD: Standard vs Professional Chauffeur
+    driverType: {
+      type: String,
+      enum: ['standard', 'professional'],
+      required: true,
+      default: 'standard',
+    },
+
     docs: {
       type: [DriverDocumentSchema],
       default: [],
     },
+
     vehicle: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vehicle',
       default: null,
     },
+
     operatingStates: {
       type: [String],
       default: ['IL'],
     },
+
     chauffeurLicense: {
       type: ChauffeurLicenseSchema,
       default: () => ({
         status: 'unverified',
       }),
     },
+
     vehicleInspection: {
       type: VehicleInspectionSchema,
       default: () => ({
         status: 'not_uploaded',
       }),
     },
+
     tripPreferences: {
       type: DriverTripPreferencesSchema,
       default: () => ({
@@ -167,11 +181,29 @@ const DriverSchema = new mongoose.Schema(
         teenPickupEnabled: false,
       }),
     },
+
+    canAccessAirport: {
+      type: Boolean,
+      default: false,
+    },
+
+    airportQueueStatus: {
+      type: String,
+      enum: ['none', 'queued', 'assigned'],
+      default: 'none',
+    },
+
+    airportQueueEnteredAt: {
+      type: Date,
+      default: null,
+    },
+
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
     },
+
     rejectionReason: {
       type: String,
       default: null,

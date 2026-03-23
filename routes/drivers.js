@@ -15,7 +15,6 @@ const {
   registerDriver,
     loginDriver,
   uploadDocument,
-  upsertVehicle,
   uploadVehicleInspection,
   verifyChauffeurLicense,
   upsertMultiStateRules,
@@ -27,6 +26,7 @@ const {
   getDriverStatus,
   updateDriverTripPreferences,
 } = require('../controllers/driverController');
+const { upsertVehicle } = require('../controllers/vehicleController');
 
 const router = express.Router();
 
