@@ -1,11 +1,12 @@
 const express = require('express');
 const {
-	listDrivers,
-	reviewDriver,
-	reviewDriverDocument,
-	getDriverComplianceStatus,
+  listDrivers,
+  reviewDriver,
+  reviewDriverDocument,
+  getDriverComplianceStatus,
 } = require('../controllers/adminDriverController');
-const { requireAdminAuth } = require('../middleware/adminAuth');
+
+const requireAdminAuth = require('../middleware/adminAuth'); // FIXED
 
 const router = express.Router();
 
