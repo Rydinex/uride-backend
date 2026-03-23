@@ -1,6 +1,7 @@
 const express = require('express');
 const { listRiders, listPaymentLogs } = require('../controllers/adminRiderController');
-const { requireAdminAuth } = require('../middleware/adminAuth');
+
+const requireAdminAuth = require('../middleware/adminAuth'); // FIXED
 
 const router = express.Router();
 
