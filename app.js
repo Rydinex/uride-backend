@@ -93,7 +93,7 @@ app.use('/api/trips', require('./routes/trips'));
 app.use('/api/airport-queue', require('./routes/airportQueue'));
 app.use('/api/complaints', require('./routes/complaints'));
 
-app.use('/api/admin/auth', require('./routes/adminAuth'));
+
 app.use('/api/admin', require('./routes/adminDrivers'));
 app.use('/api/admin', require('./routes/adminRiders'));
 app.use('/api/admin', require('./routes/adminTrips'));
