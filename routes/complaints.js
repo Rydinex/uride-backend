@@ -4,7 +4,8 @@ const {
   listComplaints,
   updateComplaintStatus,
 } = require('../controllers/complaintController');
-const { requireAdminAuth } = require('../middleware/adminAuth');
+
+const requireAdminAuth = require('../middleware/adminAuth'); // FIXED
 
 const router = express.Router();
 
