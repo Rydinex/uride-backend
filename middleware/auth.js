@@ -26,10 +26,4 @@ function verifyToken(req, res, next) {
   }
 }
 
-// Alias — used interchangeably across routes
-const authenticateToken = verifyToken;
-
-module.exports = {
-  verifyToken,
-  authenticateToken,
-};
+module.exports = verifyToken;

@@ -27,6 +27,4 @@ function requireAdminAuth(req, res, next) {
   }
 }
 
-module.exports = {
-  requireAdminAuth,
-};
+module.exports = requireAdminAuth;

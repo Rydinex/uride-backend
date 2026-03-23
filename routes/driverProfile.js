@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const Driver = require('../models/Driver');   // adjust path if needed
-const auth = require('../middleware/auth');   // JWT middleware
+const Driver = require('../models/Driver');   // adjust if needed
+const auth = require('../middleware/auth');   // adjust if needed
 
-// GET /api/driver/profile
 router.get('/profile', auth, async (req, res) => {
   try {
     const driver = await Driver.findById(req.user.id);
