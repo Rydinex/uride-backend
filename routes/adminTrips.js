@@ -1,10 +1,11 @@
 const express = require('express');
-const { requireAdminAuth } = require('../middleware/adminAuth');
 const {
   listTrips,
   getTripMonitoringMap,
   getComplianceReport,
 } = require('../controllers/adminTripController');
+
+const requireAdminAuth = require('../middleware/adminAuth'); // FIXED
 
 const router = express.Router();
 

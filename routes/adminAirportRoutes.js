@@ -1,11 +1,12 @@
 const express = require('express');
-const { requireAdminAuth } = require('../middleware/adminAuth');
 const {
   getAirportSummary,
   getQueue,
   getStagingDrivers,
   getViolations,
 } = require('../controllers/adminAirportController');
+
+const requireAdminAuth = require('../middleware/adminAuth'); // FIXED
 
 const router = express.Router();
 

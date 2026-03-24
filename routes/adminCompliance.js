@@ -1,5 +1,4 @@
 const express = require('express');
-const { requireAdminAuth } = require('../middleware/adminAuth');
 const {
   listTripLogs,
   listDriverLogs,
@@ -13,6 +12,8 @@ const {
   getChicagoTnpComplianceReport,
   exportComplianceData,
 } = require('../controllers/adminComplianceController');
+
+const requireAdminAuth = require('../middleware/adminAuth'); // FIXED
 
 const router = express.Router();
 
