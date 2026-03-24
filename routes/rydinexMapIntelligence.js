@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const rydinexMapIntelligenceService = require('../services/rydinexMapIntelligenceService');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * POST /api/rydinex-map-intelligence/route
  * Get complete map intelligence for a route
  */
-router.post('/route', authenticateToken, async (req, res) => {
+router.post('/route', verifyToken, async (req, res) => {
   try {
     const { routeCoordinates } = req.body;
 
@@ -34,9 +34,8 @@ router.post('/route', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/pickup-points
- * Get smart pickup points for a location
  */
-router.get('/pickup-points', authenticateToken, async (req, res) => {
+router.get('/pickup-points', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
@@ -67,9 +66,8 @@ router.get('/pickup-points', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/urban-warnings
- * Get urban zone warnings
  */
-router.get('/urban-warnings', authenticateToken, async (req, res) => {
+router.get('/urban-warnings', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
@@ -100,9 +98,8 @@ router.get('/urban-warnings', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/parking
- * Get parking information
  */
-router.get('/parking', authenticateToken, async (req, res) => {
+router.get('/parking', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
@@ -132,9 +129,8 @@ router.get('/parking', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/speed-limit
- * Get speed limit for location
  */
-router.get('/speed-limit', authenticateToken, async (req, res) => {
+router.get('/speed-limit', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
@@ -164,9 +160,8 @@ router.get('/speed-limit', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/risky-locations
- * Get risky intersections
  */
-router.get('/risky-locations', authenticateToken, async (req, res) => {
+router.get('/risky-locations', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude, radius = 2 } = req.query;
 
@@ -198,9 +193,8 @@ router.get('/risky-locations', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/special-zones
- * Get airport/special zone routing rules
  */
-router.get('/special-zones', authenticateToken, async (req, res) => {
+router.get('/special-zones', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
@@ -230,9 +224,8 @@ router.get('/special-zones', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/landmarks
- * Get nearby landmarks
  */
-router.get('/landmarks', authenticateToken, async (req, res) => {
+router.get('/landmarks', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
@@ -263,9 +256,8 @@ router.get('/landmarks', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/rydinex-map-intelligence/elevation
- * Get elevation profile for route
  */
-router.post('/elevation', authenticateToken, async (req, res) => {
+router.post('/elevation', verifyToken, async (req, res) => {
   try {
     const { routeCoordinates } = req.body;
 
@@ -293,9 +285,8 @@ router.post('/elevation', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-map-intelligence/context
- * Get context intelligence
  */
-router.get('/context', authenticateToken, async (req, res) => {
+router.get('/context', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
