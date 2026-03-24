@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const rydinexTrafficService = require('../services/rydinexTrafficService');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * POST /api/rydinex-traffic/report
  * Report traffic/speed data from a driver
- * Body: {latitude, longitude, speed, driverId, accuracy}
  */
-router.post('/report', authenticateToken, async (req, res) => {
+router.post('/report', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude, speed, driverId, accuracy } = req.body;
 
@@ -47,9 +46,8 @@ router.post('/report', authenticateToken, async (req, res) => {
 /**
  * POST /api/rydinex-traffic/route
  * Get traffic data for a route
- * Body: {routeCoordinates: [[lat, lon], [lat, lon], ...]}
  */
-router.post('/route', authenticateToken, async (req, res) => {
+router.post('/route', verifyToken, async (req, res) => {
   try {
     const { routeCoordinates } = req.body;
 
@@ -77,9 +75,8 @@ router.post('/route', authenticateToken, async (req, res) => {
 /**
  * GET /api/rydinex-traffic/heatmap
  * Get traffic heatmap for an area
- * Query: {latitude, longitude, radius (km)}
  */
-router.get('/heatmap', authenticateToken, async (req, res) => {
+router.get('/heatmap', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude, radius = 2 } = req.query;
 
@@ -111,10 +108,9 @@ router.get('/heatmap', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/rydinex-traffic/incident
- * Report an incident (accident, construction, etc.)
- * Body: {latitude, longitude, type, description, severity, reportedBy}
+ * Report an incident
  */
-router.post('/incident', authenticateToken, async (req, res) => {
+router.post('/incident', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude, type, description, severity, reportedBy } = req.body;
 
@@ -148,10 +144,9 @@ router.post('/incident', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-traffic/predict
- * Get predicted traffic for a time/location
- * Query: {latitude, longitude, time (optional ISO string)}
+ * Get predicted traffic
  */
-router.get('/predict', authenticateToken, async (req, res) => {
+router.get('/predict', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude, time } = req.query;
 
@@ -191,10 +186,9 @@ router.get('/predict', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-traffic/congested-roads
- * Get top congested roads in the area
- * Query: {limit}
+ * Get top congested roads
  */
-router.get('/congested-roads', authenticateToken, async (req, res) => {
+router.get('/congested-roads', verifyToken, async (req, res) => {
   try {
     const { limit = 10 } = req.query;
 
