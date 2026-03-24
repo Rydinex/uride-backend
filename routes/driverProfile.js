@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-const Driver = require('../models/Driver');   // adjust if needed
-const auth = require('../middleware/auth');   // adjust if needed
+const Driver = require('../models/Driver');
+const { verifyToken } = require('../middleware/auth');
 
-router.get('/profile', auth, async (req, res) => {
+// GET /api/driver/profile
+router.get('/profile', verifyToken, async (req, res) => {
   try {
     const driver = await Driver.findById(req.user.id);
 
