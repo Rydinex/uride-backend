@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const rydinexAIPoiService = require('../services/rydinexAIPoiService');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * GET /api/rydinex-poi/nearby
  * Find POI near current location
- * Query params: latitude, longitude, radius, category, minRating, limit
  */
-router.get('/nearby', authenticateToken, async (req, res) => {
+router.get('/nearby', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude, radius = 2, category = null, minRating = 0, limit = 10 } =
       req.query;
@@ -46,11 +45,10 @@ router.get('/nearby', authenticateToken, async (req, res) => {
 });
 
 /**
- * GET /api/rydinex-poi/route-recommendations
+ * POST /api/rydinex-poi/route-recommendations
  * Get POI recommendations along a route
- * Body: routePoints (array of [lat, lon]), preferences
  */
-router.post('/route-recommendations', authenticateToken, async (req, res) => {
+router.post('/route-recommendations', verifyToken, async (req, res) => {
   try {
     const { routePoints, preferences = {} } = req.body;
 
@@ -82,9 +80,8 @@ router.post('/route-recommendations', authenticateToken, async (req, res) => {
 /**
  * GET /api/rydinex-poi/search
  * Search POI by name/address
- * Query params: search, latitude, longitude, radius, limit
  */
-router.get('/search', authenticateToken, async (req, res) => {
+router.get('/search', verifyToken, async (req, res) => {
   try {
     const { search, latitude = null, longitude = null, radius = 5, limit = 10 } = req.query;
 
@@ -118,9 +115,8 @@ router.get('/search', authenticateToken, async (req, res) => {
 /**
  * GET /api/rydinex-poi/category/:category
  * Get POI by category
- * Query params: latitude, longitude, radius, limit
  */
-router.get('/category/:category', authenticateToken, async (req, res) => {
+router.get('/category/:category', verifyToken, async (req, res) => {
   try {
     const { category } = req.params;
     const { latitude = null, longitude = null, radius = 5, limit = 20 } = req.query;
@@ -174,9 +170,8 @@ router.get('/category/:category', authenticateToken, async (req, res) => {
 /**
  * GET /api/rydinex-poi/emergency
  * Get emergency services nearby
- * Query params: latitude, longitude, radius
  */
-router.get('/emergency', authenticateToken, async (req, res) => {
+router.get('/emergency', verifyToken, async (req, res) => {
   try {
     const { latitude, longitude, radius = 5 } = req.query;
 
@@ -209,9 +204,8 @@ router.get('/emergency', authenticateToken, async (req, res) => {
 /**
  * POST /api/rydinex-poi/visit
  * Log POI visit for analytics
- * Body: poiId
  */
-router.post('/visit', authenticateToken, async (req, res) => {
+router.post('/visit', verifyToken, async (req, res) => {
   try {
     const { poiId } = req.body;
     const userId = req.user?.id;
