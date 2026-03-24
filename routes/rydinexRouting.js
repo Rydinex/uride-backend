@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const rydinexRoutingService = require('../services/rydinexRoutingService');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * POST /api/rydinex-routing/calculate
- * Calculate route between waypoints
- * Body: waypoints (array of {latitude, longitude, name})
  */
-router.post('/calculate', authenticateToken, async (req, res) => {
+router.post('/calculate', verifyToken, async (req, res) => {
   try {
     const { waypoints, options = {} } = req.body;
 
@@ -35,10 +33,8 @@ router.post('/calculate', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/rydinex-routing/distance
- * Get distance and ETA between two points
- * Body: {latitude1, longitude1, latitude2, longitude2}
  */
-router.post('/distance', authenticateToken, async (req, res) => {
+router.post('/distance', verifyToken, async (req, res) => {
   try {
     const { latitude1, longitude1, latitude2, longitude2 } = req.body;
 
@@ -70,11 +66,8 @@ router.post('/distance', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/rydinex-routing/matrix
- * Get distance matrix between multiple points
- * Useful for finding nearest driver or multi-stop optimization
- * Body: {locations: [{latitude, longitude}, ...]}
  */
-router.post('/matrix', authenticateToken, async (req, res) => {
+router.post('/matrix', verifyToken, async (req, res) => {
   try {
     const { locations } = req.body;
 
@@ -101,10 +94,8 @@ router.post('/matrix', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/rydinex-routing/optimize
- * Optimize waypoint order for multi-stop trips
- * Body: {waypoints: [{latitude, longitude, name}, ...]}
  */
-router.post('/optimize', authenticateToken, async (req, res) => {
+router.post('/optimize', verifyToken, async (req, res) => {
   try {
     const { waypoints } = req.body;
 
@@ -131,10 +122,8 @@ router.post('/optimize', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/rydinex-routing/create
- * Create a route in the database
- * Body: Route data from calculateRoute response
  */
-router.post('/create', authenticateToken, async (req, res) => {
+router.post('/create', verifyToken, async (req, res) => {
   try {
     const { tripId, driverId, riderId, ...routeData } = req.body;
 
@@ -166,10 +155,8 @@ router.post('/create', authenticateToken, async (req, res) => {
 
 /**
  * PATCH /api/rydinex-routing/:routeId/progress
- * Update current progress along route
- * Body: {latitude, longitude}
  */
-router.patch('/:routeId/progress', authenticateToken, async (req, res) => {
+router.patch('/:routeId/progress', verifyToken, async (req, res) => {
   try {
     const { routeId } = req.params;
     const { latitude, longitude } = req.body;
@@ -200,9 +187,8 @@ router.patch('/:routeId/progress', authenticateToken, async (req, res) => {
 
 /**
  * GET /api/rydinex-routing/:routeId/next-instruction
- * Get next turn instruction
  */
-router.get('/:routeId/next-instruction', authenticateToken, async (req, res) => {
+router.get('/:routeId/next-instruction', verifyToken, async (req, res) => {
   try {
     const { routeId } = req.params;
 
@@ -223,9 +209,8 @@ router.get('/:routeId/next-instruction', authenticateToken, async (req, res) => 
 
 /**
  * GET /api/rydinex-routing/:routeId
- * Get full route details
  */
-router.get('/:routeId', authenticateToken, async (req, res) => {
+router.get('/:routeId', verifyToken, async (req, res) => {
   try {
     const { routeId } = req.params;
     const Route = require('../models/Route');
@@ -253,9 +238,8 @@ router.get('/:routeId', authenticateToken, async (req, res) => {
 
 /**
  * POST /api/rydinex-routing/:routeId/complete
- * Mark route as completed
  */
-router.post('/:routeId/complete', authenticateToken, async (req, res) => {
+router.post('/:routeId/complete', verifyToken, async (req, res) => {
   try {
     const { routeId } = req.params;
 
