@@ -4,38 +4,59 @@ import styles from "./page.module.css";
 
 const connectionPillars = [
   {
-    title: "Rider app intelligence",
-    detail:
-      "Trip requests, destination intent, and safety preferences are normalized before dispatch so matching stays consistent.",
+    title: "Rider demand intelligence",
+    detail: "Booking intent, pickup precision, and fare transparency stream into one normalized request lane.",
   },
   {
-    title: "Driver app heartbeat",
-    detail:
-      "Online/offline state, queue position, and route telemetry sync every few seconds to keep dispatch decisions current.",
+    title: "Driver heartbeat grid",
+    detail: "Online state, queue status, and trip telemetry refresh continuously for stable dispatch.",
   },
   {
-    title: "Ops control plane",
-    detail:
-      "Compliance, incident workflows, surge parameters, and payout signals are all visible in one timeline for operators.",
+    title: "Admin control plane",
+    detail: "Safety, compliance, payout control, and demand tuning are orchestrated from one desktop surface.",
   },
 ];
 
-const roadmap = [
+const desktopModules = [
   {
-    step: "01",
-    title: "Request",
-    detail: "Rider app captures pickup, dropoff, and preferences with transparent fare context.",
+    tag: "Rider",
+    title: "Rider Experience",
+    detail: "Booking flow, safety hub, teen safeguards, and transparent fare stack.",
+    href: "/rider-app",
+    cta: "Open Rider Panel",
   },
   {
-    step: "02",
-    title: "Match",
-    detail: "Dispatch ranks available drivers using proximity, route quality, and realtime demand pressure.",
+    tag: "Driver",
+    title: "Driver Operations",
+    detail: "Realtime requests, airport queues, event hubs, and earnings controls.",
+    href: "/driver-app",
+    cta: "Open Driver Panel",
   },
   {
-    step: "03",
-    title: "Move",
-    detail: "Driver and rider apps stay synchronized through trip tracking, safety events, and payout state.",
+    tag: "Admin",
+    title: "Admin Console",
+    detail: "Executive metrics, compliance controls, driver/rider operations, and export tooling.",
+    href: "/admin",
+    cta: "Open Admin Console",
   },
+];
+
+const riderUpdates = [
+  "Expanded ride selection and fair pay badge coverage",
+  "Live tracking + safety hub with airport pickup signal flow",
+  "Reservations and multi-stop readiness in one flow",
+];
+
+const driverUpdates = [
+  "Updated surge-aware dashboard and strategic positioning",
+  "Airport queues, wait timer, and destination planning",
+  "Safety dashboard, vehicle audit, and support appointment tools",
+];
+
+const adminUpdates = [
+  "Executive overview with financial and system health indicators",
+  "Driver/rider management hubs and trip log analytics",
+  "Compliance, access approvals, audit logs, and expansion workflows",
 ];
 
 function formatPercent(value: number | null | undefined): string {
@@ -70,55 +91,52 @@ function formatGeneratedAt(value: string | null | undefined): string {
 export default async function HomePage() {
   const overview = await fetchNetworkOverview();
 
-  const riderDeepLink = overview?.appBridge?.rider?.deepLink || "rydinex://open";
-  const driverDeepLink = overview?.appBridge?.driver?.deepLink || "rydinex-driver://open";
   const riderFallbackPath = overview?.appBridge?.rider?.fallbackPath || "/rider-app";
   const driverFallbackPath = overview?.appBridge?.driver?.fallbackPath || "/driver-app";
 
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
-        <header className={styles.topBar}>
+      <section className={styles.desktopShell}>
+        <aside className={styles.sideRail}>
           <div className={styles.brand}>
             <span className={styles.brandMark}>RX</span>
             <div>
-              <p className={styles.brandName}>rydinex.com</p>
-              <p className={styles.brandSub}>Connected City Mobility</p>
+              <p className={styles.brandName}>Rydinex Desktop</p>
+              <p className={styles.brandSub}>Platform Controller</p>
             </div>
           </div>
 
           <nav className={styles.nav}>
-            <a href="#connectivity">Connectivity</a>
+            <a href="#desktop">Desktop Overview</a>
+            <a href="#modules">Module Hub</a>
+            <a href="#updates">PRD Updates</a>
             <a href="#airports">Airport Windows</a>
-            <a href="#apps">Apps</a>
-            <Link href="/connect">Connect Center</Link>
-            <Link href="/admin">Ops Console</Link>
+            <Link href="/connect">Connectivity Center</Link>
+            <Link href="/admin">Admin Console</Link>
           </nav>
-        </header>
+        </aside>
 
-        <div className={styles.heroGrid}>
-          <div className={styles.heroCopy}>
-            <p className={styles.kicker}>Rydinex Cloud Platform</p>
-            <h1>Rider and driver apps, fully synced in one realtime network.</h1>
+        <div className={styles.desktopContent}>
+          <section id="desktop" className={styles.hero}>
+            <div className={styles.heroTop}>
+              <p className={styles.kicker}>Desktop Command Center</p>
+              <p className={styles.liveText}>{formatGeneratedAt(overview?.generatedAt)}</p>
+            </div>
+            <h1>Rider, Driver, and Admin dashboards on one desktop workspace.</h1>
             <p>
-              Rydinex is built to deliver faster matching, clearer earnings visibility, and safer operations by keeping
-              every app and dashboard on the same live backbone.
+              Your updated PRD modules are now mapped into a desktop-first control surface so operations can monitor,
+              launch, and manage every lane from one screen.
             </p>
 
             <div className={styles.ctaRow}>
-              <Link className={styles.primaryCta} href="/connect">
-                Open App Connectivity Center
+              <Link className={styles.primaryCta} href="/admin">
+                Launch Admin Dashboard
               </Link>
-              <Link className={styles.secondaryCta} href="/admin">
-                Launch Operations Console
+              <Link className={styles.secondaryCta} href="/connect">
+                Open Connectivity Center
               </Link>
             </div>
 
-            <p className={styles.liveText}>{formatGeneratedAt(overview?.generatedAt)}</p>
-          </div>
-
-          <aside className={styles.livePanel}>
-            <p className={styles.liveEyebrow}>Network Snapshot</p>
             <div className={styles.metricGrid}>
               <article>
                 <p>{overview?.network?.activeRiders ?? 0}</p>
@@ -130,106 +148,121 @@ export default async function HomePage() {
               </article>
               <article>
                 <p>{overview?.network?.activeTrips ?? 0}</p>
-                <span>Active trips</span>
+                <span>Live trips</span>
               </article>
               <article>
                 <p>{formatPercent(overview?.reliability?.completionRate24h)}</p>
-                <span>Completion rate (24h)</span>
+                <span>Completion (24h)</span>
               </article>
             </div>
-            <p className={styles.liveDemand}>
-              Demand band: <strong>{formatDemandBand(overview?.demand?.demandBand)}</strong>
-            </p>
-          </aside>
-        </div>
-      </section>
 
-      <section id="connectivity" className={styles.section}>
-        <div className={styles.sectionHeading}>
-          <p>Platform Connectivity</p>
-          <h2>How Rydinex keeps rider and driver experiences aligned.</h2>
-        </div>
-        <div className={styles.pillarGrid}>
-          {connectionPillars.map((pillar, index) => (
-            <article key={pillar.title} className={styles.pillarCard} style={{ animationDelay: `${0.1 + index * 0.08}s` }}>
-              <h3>{pillar.title}</h3>
-              <p>{pillar.detail}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+            <p className={styles.liveDemand}>Demand band: {formatDemandBand(overview?.demand?.demandBand)}</p>
+          </section>
 
-      <section id="airports" className={styles.section}>
-        <div className={styles.sectionHeading}>
-          <p>Airport Opportunity Layer</p>
-          <h2>Peak flight windows for O Hare and Midway are shared to both apps.</h2>
-        </div>
-        <div className={styles.airportGrid}>
-          {(overview?.airportPeakWindows || []).map(window => (
-            <article key={`${window.airportCode}-${window.title}`} className={styles.airportCard}>
-              <p className={styles.airportCode}>{window.airportCode}</p>
-              <h3>{window.title}</h3>
-              <p>{window.airportName}</p>
-              <span>{window.localWindow} local time</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="apps" className={styles.section}>
-        <div className={styles.sectionHeading}>
-          <p>App Bridge</p>
-          <h2>Launch rider and driver apps from one web command center.</h2>
-        </div>
-        <div className={styles.appGrid}>
-          <article className={styles.appCard}>
-            <h3>Rider App Entry</h3>
-            <p>Open booking and trip tracking directly with deep links, then fallback to web when needed.</p>
-            <div className={styles.appActions}>
-              <a href={riderDeepLink} className={styles.primaryCta}>
-                Open Rider App
-              </a>
-              <Link href={riderFallbackPath} className={styles.secondaryCta}>
-                Rider web fallback
-              </Link>
+          <section id="modules" className={styles.section}>
+            <div className={styles.sectionHeading}>
+              <p>Module Hub</p>
+              <h2>Desktop launch surfaces for Rider, Driver, and Admin operations.</h2>
             </div>
-          </article>
 
-          <article className={styles.appCard}>
-            <h3>Driver App Entry</h3>
-            <p>Jump into online mode, queue tools, and earnings controls from the same web bridge.</p>
-            <div className={styles.appActions}>
-              <a href={driverDeepLink} className={styles.primaryCta}>
-                Open Driver App
-              </a>
-              <Link href={driverFallbackPath} className={styles.secondaryCta}>
-                Driver web fallback
-              </Link>
+            <div className={styles.moduleGrid}>
+              {desktopModules.map(module => (
+                <article key={module.title} className={styles.moduleCard}>
+                  <span className={styles.moduleTag}>{module.tag}</span>
+                  <h3>{module.title}</h3>
+                  <p>{module.detail}</p>
+                  <Link href={module.href} className={styles.moduleAction}>
+                    {module.cta}
+                  </Link>
+                </article>
+              ))}
             </div>
-          </article>
-        </div>
-      </section>
+          </section>
 
-      <section className={styles.section}>
-        <div className={styles.sectionHeading}>
-          <p>Trip Lifecycle</p>
-          <h2>Every ride follows one synchronized control flow.</h2>
-        </div>
-        <div className={styles.roadmapGrid}>
-          {roadmap.map(item => (
-            <article key={item.step} className={styles.roadmapCard}>
-              <span>{item.step}</span>
-              <h3>{item.title}</h3>
-              <p>{item.detail}</p>
-            </article>
-          ))}
+          <section id="updates" className={styles.section}>
+            <div className={styles.sectionHeading}>
+              <p>PRD Integration</p>
+              <h2>Latest rider, driver, and admin items now tracked in desktop view.</h2>
+            </div>
+
+            <div className={styles.updateGrid}>
+              <article className={styles.updateCard}>
+                <h3>Rider updates</h3>
+                <ul>
+                  {riderUpdates.map(item => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <Link href={riderFallbackPath} className={styles.inlineLink}>
+                  Open rider fallback
+                </Link>
+              </article>
+
+              <article className={styles.updateCard}>
+                <h3>Driver updates</h3>
+                <ul>
+                  {driverUpdates.map(item => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <Link href={driverFallbackPath} className={styles.inlineLink}>
+                  Open driver fallback
+                </Link>
+              </article>
+
+              <article className={styles.updateCard}>
+                <h3>Admin updates</h3>
+                <ul>
+                  {adminUpdates.map(item => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <Link href="/admin" className={styles.inlineLink}>
+                  Open admin console
+                </Link>
+              </article>
+            </div>
+          </section>
+
+          <section id="connectivity" className={styles.section}>
+            <div className={styles.sectionHeading}>
+              <p>Connection Fabric</p>
+              <h2>How all apps stay synchronized in one operational stream.</h2>
+            </div>
+
+            <div className={styles.pillarGrid}>
+              {connectionPillars.map((pillar, index) => (
+                <article key={pillar.title} className={styles.pillarCard} style={{ animationDelay: `${0.1 + index * 0.08}s` }}>
+                  <h3>{pillar.title}</h3>
+                  <p>{pillar.detail}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="airports" className={styles.section}>
+            <div className={styles.sectionHeading}>
+              <p>Airport Opportunity Layer</p>
+              <h2>Peak flight windows distributed across rider and driver experiences.</h2>
+            </div>
+            <div className={styles.airportGrid}>
+              {(overview?.airportPeakWindows || []).map(window => (
+                <article key={`${window.airportCode}-${window.title}`} className={styles.airportCard}>
+                  <p className={styles.airportCode}>{window.airportCode}</p>
+                  <h3>{window.title}</h3>
+                  <p>{window.airportName}</p>
+                  <span>{window.localWindow} local time</span>
+                </article>
+              ))}
+            </div>
+          </section>
         </div>
       </section>
 
       <footer className={styles.footer}>
-        <p>Domain: rydinex.com</p>
-        <p>Apps: Rydinex Rider | Rydinex Driver</p>
-        <p>Control plane: Rydinex Operations Console</p>
+        <p>Desktop mode enabled</p>
+        <p>Apps: Rider | Driver | Admin</p>
+        <p>Rydinex operations workspace</p>
       </footer>
     </main>
   );

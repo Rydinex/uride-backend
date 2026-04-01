@@ -1,2 +1,0 @@
-Sample driver document for Rydinex onboarding API testing.
-Use this file with the "Upload Driver Document" Postman request.

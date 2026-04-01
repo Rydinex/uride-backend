@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,57 @@ interface LocationData {
   altitude?: number;
 }
 
+type RideCategory = 'black_car' | 'black_suv';
+
+interface QueueEntrySnapshot {
+  queueType?: string;
+  airportCode?: string | null;
+  eventCode?: string | null;
+  status?: string;
+  position?: number | null;
+  estimatedWaitMinutes?: number | null;
+}
+
+interface DriverQueueStatus {
+  detectedAirport?: {
+    code: string;
+    name: string;
+  } | null;
+  detectedAirportLot?: {
+    lotCode?: string;
+    lotName?: string;
+    inRequiredLot?: boolean;
+  } | null;
+  pickupZone?: {
+    code?: string;
+    name?: string;
+  } | null;
+  queueEntry?: QueueEntrySnapshot | null;
+}
+
+interface AirportPickupInstructions {
+  isAirportPickup?: boolean;
+  airport?: {
+    code: string;
+    name: string;
+  } | null;
+  terminal?: string | null;
+  requiredLot?: {
+    code?: string;
+    name?: string;
+    inRequiredLot?: boolean;
+  } | null;
+  pickupZone?: {
+    code?: string;
+    name?: string;
+  } | null;
+  pickupLane?: {
+    name?: string;
+    message?: string;
+  } | null;
+  instructions?: string[];
+}
+
 interface RydinexMapProps {
   tripId: string;
   userId: string;
@@ -32,6 +83,8 @@ interface RydinexMapProps {
   backendUrl?: string;
   onLocationUpdate?: (location: LocationData) => void;
   initialMapType?: 'standard' | 'satellite' | 'hybrid';
+  rideCategory?: RideCategory;
+  enableAirportFlow?: boolean;
 }
 
 export default function RydinexMap({
@@ -41,10 +94,13 @@ export default function RydinexMap({
   backendUrl = BACKEND_URL,
   onLocationUpdate,
   initialMapType = 'standard',
+  rideCategory = 'black_car',
+  enableAirportFlow = true,
 }: RydinexMapProps) {
   const mapRef = useRef<MapView>(null);
   const socketRef = useRef<any>(null);
   const locationWatchRef = useRef<number | null>(null);
+  const airportRefreshRef = useRef(0);
 
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
   const [riderLocation, setRiderLocation] = useState<LocationData | null>(null);
@@ -57,6 +113,136 @@ export default function RydinexMap({
     avgSpeed: 0,
     maxSpeed: 0,
   });
+  const [airportInstructions, setAirportInstructions] = useState<AirportPickupInstructions | null>(null);
+  const [queueStatus, setQueueStatus] = useState<DriverQueueStatus | null>(null);
+  const [airportFlowError, setAirportFlowError] = useState('');
+  const [queueActionLoading, setQueueActionLoading] = useState(false);
+
+  const refreshAirportFlow = useCallback(
+    async (location: LocationData) => {
+      if (!enableAirportFlow || userType !== 'driver') {
+        return;
+      }
+
+      const query = new URLSearchParams({
+        latitude: String(location.latitude),
+        longitude: String(location.longitude),
+        rideCategory,
+      });
+
+      try {
+        const [pickupResponse, statusResponse] = await Promise.all([
+          fetch(`${backendUrl}/api/airport-queue/pickup-instructions?${query.toString()}`),
+          fetch(`${backendUrl}/api/airport-queue/driver/${encodeURIComponent(userId)}/status?${query.toString()}`),
+        ]);
+
+        if (pickupResponse.status === 403) {
+          const deniedPayload = await pickupResponse.json();
+          setAirportFlowError(deniedPayload?.message || 'Pickup is not allowed from this location.');
+          setAirportInstructions(null);
+        } else if (pickupResponse.ok) {
+          const pickupPayload = await pickupResponse.json();
+          setAirportInstructions(pickupPayload);
+          setAirportFlowError('');
+        } else {
+          const pickupFailure = await pickupResponse.json().catch(() => ({}));
+          setAirportFlowError(pickupFailure?.message || 'Unable to fetch airport pickup instructions.');
+        }
+
+        if (statusResponse.ok) {
+          const statusPayload = await statusResponse.json();
+          setQueueStatus(statusPayload);
+        }
+      } catch (requestError: unknown) {
+        const message = requestError instanceof Error ? requestError.message : 'Failed to sync airport queue state.';
+        setAirportFlowError(message);
+      }
+    },
+    [backendUrl, enableAirportFlow, rideCategory, userId, userType]
+  );
+
+  const handleJoinQueue = useCallback(async () => {
+    if (!currentLocation) {
+      Alert.alert('Location Required', 'Current location is required to enter queue.');
+      return;
+    }
+
+    const airportCode =
+      airportInstructions?.airport?.code ||
+      queueStatus?.detectedAirport?.code ||
+      null;
+
+    if (!airportCode) {
+      Alert.alert('Airport Not Detected', 'Move inside ORD or MDW airport area before joining queue.');
+      return;
+    }
+
+    try {
+      setQueueActionLoading(true);
+
+      const response = await fetch(`${backendUrl}/api/airport-queue/enter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          driverId: userId,
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          airportCode,
+          queueType: 'airport',
+          rideCategory,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to enter airport queue.');
+      }
+
+      await refreshAirportFlow(currentLocation);
+      Alert.alert('Queue Updated', 'You are now in the airport queue.');
+    } catch (requestError: unknown) {
+      const message = requestError instanceof Error ? requestError.message : 'Unable to enter airport queue.';
+      Alert.alert('Queue Error', message);
+    } finally {
+      setQueueActionLoading(false);
+    }
+  }, [airportInstructions, backendUrl, currentLocation, queueStatus, refreshAirportFlow, rideCategory, userId]);
+
+  const handleExitQueue = useCallback(async () => {
+    try {
+      setQueueActionLoading(true);
+
+      const response = await fetch(`${backendUrl}/api/airport-queue/exit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          driverId: userId,
+          queueType: queueStatus?.queueEntry?.queueType || 'airport',
+          airportCode: queueStatus?.queueEntry?.airportCode || airportInstructions?.airport?.code || null,
+          eventCode: queueStatus?.queueEntry?.eventCode || null,
+          reason: 'Driver left queue from app action.',
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Unable to exit airport queue.');
+      }
+
+      if (currentLocation) {
+        await refreshAirportFlow(currentLocation);
+      }
+    } catch (requestError: unknown) {
+      const message = requestError instanceof Error ? requestError.message : 'Unable to exit airport queue.';
+      Alert.alert('Queue Error', message);
+    } finally {
+      setQueueActionLoading(false);
+    }
+  }, [airportInstructions, backendUrl, currentLocation, queueStatus, refreshAirportFlow, userId]);
 
   // Request location permissions
   const requestLocationPermission = async () => {
@@ -160,6 +346,7 @@ export default function RydinexMap({
 
           setCurrentLocation(location);
           setPolylinePoints([location]);
+          refreshAirportFlow(location);
 
           // Pan to current location
           mapRef.current?.animateToRegion({
@@ -187,6 +374,12 @@ export default function RydinexMap({
 
           setCurrentLocation(location);
           onLocationUpdate?.(location);
+
+          const now = Date.now();
+          if (enableAirportFlow && userType === 'driver' && now - airportRefreshRef.current > 12000) {
+            airportRefreshRef.current = now;
+            refreshAirportFlow(location);
+          }
 
           // Emit to backend (driver sends location)
           socketRef.current?.emit('location-update', {
@@ -218,7 +411,7 @@ export default function RydinexMap({
         Geolocation.clearWatch(locationWatchRef.current);
       }
     };
-  }, [tripId, userId, onLocationUpdate]);
+  }, [enableAirportFlow, onLocationUpdate, refreshAirportFlow, tripId, userId, userType]);
 
   if (isLoading) {
     return (
@@ -277,6 +470,48 @@ export default function RydinexMap({
       )}
 
       {/* Map Type Switcher */}
+      {enableAirportFlow && userType === 'driver' && (
+        <View style={styles.airportCard}>
+          <Text style={styles.airportTitle}>Airport Ops</Text>
+          <Text style={styles.airportMeta}>Category: {rideCategory === 'black_suv' ? 'Black SUV' : 'Black Car'}</Text>
+
+          {airportInstructions?.isAirportPickup && (
+            <>
+              <Text style={styles.airportMeta}>
+                Airport: {airportInstructions.airport?.code || '-'} {airportInstructions.terminal ? `- ${airportInstructions.terminal}` : ''}
+              </Text>
+              <Text style={styles.airportMeta}>Lot: {airportInstructions.requiredLot?.name || '-'}</Text>
+              <Text style={styles.airportMeta}>Zone: {airportInstructions.pickupZone?.name || '-'}</Text>
+            </>
+          )}
+
+          {queueStatus?.queueEntry?.status === 'waiting' ? (
+            <Text style={styles.queueStatusText}>
+              In Queue: Position {queueStatus?.queueEntry?.position || '-'} {queueStatus?.queueEntry?.estimatedWaitMinutes !== null && queueStatus?.queueEntry?.estimatedWaitMinutes !== undefined ? `• ETA ${queueStatus.queueEntry.estimatedWaitMinutes}m` : ''}
+            </Text>
+          ) : (
+            <Text style={styles.queueStatusText}>Not currently in queue</Text>
+          )}
+
+          {airportFlowError ? <Text style={styles.airportErrorText}>{airportFlowError}</Text> : null}
+
+          <View style={styles.queueActionsRow}>
+            <Text
+              style={[styles.queueButton, queueActionLoading && styles.queueButtonDisabled]}
+              onPress={queueActionLoading ? undefined : handleJoinQueue}
+            >
+              Join Queue
+            </Text>
+            <Text
+              style={[styles.queueButtonSecondary, queueActionLoading && styles.queueButtonDisabled]}
+              onPress={queueActionLoading ? undefined : handleExitQueue}
+            >
+              Exit Queue
+            </Text>
+          </View>
+        </View>
+      )}
+
       <View style={styles.mapTypeContainer}>
         {(['standard', 'satellite', 'hybrid'] as const).map(type => (
           <Text
@@ -349,6 +584,70 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  airportCard: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 92,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderRadius: 10,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.18,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  airportTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  airportMeta: {
+    fontSize: 12,
+    color: '#374151',
+    marginBottom: 2,
+  },
+  queueStatusText: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  airportErrorText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#b91c1c',
+  },
+  queueActionsRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  queueButton: {
+    backgroundColor: '#0f766e',
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '700',
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+  },
+  queueButtonSecondary: {
+    backgroundColor: '#334155',
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '700',
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+  },
+  queueButtonDisabled: {
+    opacity: 0.6,
   },
   mapTypeButton: {
     paddingVertical: 8,

@@ -10,6 +10,7 @@ import {
   Linking,
   PermissionsAndroid,
   Platform,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -45,6 +46,8 @@ const MAX_RELIABLE_GPS_ACCURACY_METERS = 70;
 const MIN_HEARTBEAT_DISTANCE_METERS = 8;
 const MIN_HEARTBEAT_INTERVAL_MS = 2500;
 const MIN_QUEUE_REFRESH_INTERVAL_MS = 12000;
+const QUEUE_ACTION_DEBOUNCE_MS = 1800;
+const QUEUE_ACTION_RETRY_DELAYS_MS = [700, 1400];
 const MAX_SHIFT_DRIVING_HOURS = 12;
 const MAX_SHIFT_DRIVING_MS = MAX_SHIFT_DRIVING_HOURS * 60 * 60 * 1000;
 const DESTINATION_KEY_DAILY_LIMIT = 2;
@@ -76,11 +79,29 @@ const AIRPORT_OPPORTUNITY_WINDOWS = [
   },
 ] as const;
 
+const ORD_QUEUE_LOTS = [
+  {
+    name: 'ORD Limo Lot',
+    category: 'Rydinex Black/SUV',
+    driverType: 'Black Car',
+  },
+  {
+    name: 'ORD Alpha Waiting Lot',
+    category: 'Standard',
+    driverType: 'Regular drivers',
+  },
+  {
+    name: 'ORD Delta Overflow Lot',
+    category: 'Standard',
+    driverType: 'Regular drivers',
+  },
+] as const;
+
 const AIRPORT_EARNING_HOTSPOTS = [
   {
     id: 'ord-hotspot',
-    label: 'ORD Terminals / TNP Lot',
-    query: 'ORD terminals transportation network pickup lot',
+    label: 'ORD Limo Lot (Black/SUV)',
+    query: 'ORD limo lot black SUV',
   },
   {
     id: 'mdw-hotspot',
@@ -174,6 +195,12 @@ function shouldEmitLocationUpdate(
   }
 
   return false;
+}
+
+function waitFor(ms: number) {
+  return new Promise<void>(resolve => {
+    setTimeout(resolve, ms);
+  });
 }
 
 type DriverAirportQueueStatus = {
@@ -477,6 +504,24 @@ function formatMaskedCurrency(value: number | null | undefined, isVisible: boole
   return `$${Number(value).toFixed(2)}`;
 }
 
+const DRIVER_COLORS = {
+  background: '#131314',
+  surface: '#1f1f20',
+  surfaceHigh: '#2a2a2b',
+  surfaceHighest: '#353436',
+  textPrimary: '#e5e2e3',
+  textSecondary: '#c2c6d7',
+  accent: '#276ef1',
+  accentSoft: '#31477c',
+  divider: '#424654',
+  successSoft: '#163828',
+  successText: '#b7f7cf',
+  dangerSoft: '#492525',
+  dangerText: '#ffb4ab',
+  neutralSoft: '#303031',
+  shadow: '#000000',
+};
+
 function getProTierChipStyle(tier: RydineXProTier | null | undefined) {
   if (tier === 'platinum') {
     return {
@@ -546,6 +591,7 @@ type RegistrationProps = NativeStackScreenProps<RootStackParamList, 'Registratio
 
 function RegistrationScreen({ navigation, context }: RegistrationProps) {
   const [isLoginMode, setIsLoginMode] = useState(false);
+  const [driverType, setDriverType] = useState<'standard' | 'professional'>('standard');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -564,7 +610,7 @@ function RegistrationScreen({ navigation, context }: RegistrationProps) {
       const endpoint = isLoginMode ? '/drivers/login' : '/drivers/register';
       const requestBody = isLoginMode
         ? { email, password }
-        : { name, phone, email, password };
+        : { name, phone, email, password, driverType };
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -584,8 +630,8 @@ function RegistrationScreen({ navigation, context }: RegistrationProps) {
 
       context.setDriverId(resolvedDriverId);
       if (isLoginMode) {
-        const normalizedStatus = String(payload?.driver?.status || '').toLowerCase();
-        navigation.navigate(normalizedStatus === 'approved' ? 'IncomingRequests' : 'PendingApproval');
+        // Always land on the operational dashboard first (online toggle, map shortcuts, airport queue).
+        navigation.navigate('PendingApproval');
         return;
       }
 
@@ -596,7 +642,7 @@ function RegistrationScreen({ navigation, context }: RegistrationProps) {
     } finally {
       setLoading(false);
     }
-  }, [context, email, isLoginMode, name, navigation, password, phone]);
+  }, [context, driverType, email, isLoginMode, name, navigation, password, phone]);
 
   return (
     <ScrollView contentContainerStyle={styles.screenContainer}>
@@ -606,6 +652,17 @@ function RegistrationScreen({ navigation, context }: RegistrationProps) {
           : 'Create a new driver account to start onboarding.'}
       </Text>
       {!isLoginMode ? <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} /> : null}
+      {!isLoginMode ? (
+        <View style={styles.queueActionsRow}>
+          <View style={styles.tripActionButton}>
+            <Button title="Standard" onPress={() => setDriverType('standard')} />
+          </View>
+          <View style={styles.tripActionButton}>
+            <Button title="Professional" onPress={() => setDriverType('professional')} />
+          </View>
+        </View>
+      ) : null}
+      {!isLoginMode ? <Text style={styles.helperNote}>Driver type: {driverType.toUpperCase()}</Text> : null}
       {!isLoginMode ? (
         <TextInput style={styles.input} placeholder="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
       ) : null}
@@ -828,6 +885,7 @@ function VehicleInfoScreen({ navigation, context }: VehicleInfoProps) {
   const [plateNumber, setPlateNumber] = useState('');
   const [color, setColor] = useState('');
   const [powertrain, setPowertrain] = useState('gasoline');
+  const [rideCategory, setRideCategory] = useState('rydine_regular');
   const [loading, setLoading] = useState(false);
 
   const saveVehicle = useCallback(async () => {
@@ -866,6 +924,7 @@ function VehicleInfoScreen({ navigation, context }: VehicleInfoProps) {
           plateNumber,
           color,
           powertrain: normalizedPowertrain,
+          rideCategory,
         }),
       });
 
@@ -881,7 +940,7 @@ function VehicleInfoScreen({ navigation, context }: VehicleInfoProps) {
     } finally {
       setLoading(false);
     }
-  }, [color, context.driverId, make, model, navigation, plateNumber, powertrain, year]);
+  }, [color, context.driverId, make, model, navigation, plateNumber, powertrain, rideCategory, year]);
 
   return (
     <ScrollView contentContainerStyle={styles.screenContainer}>
@@ -895,6 +954,13 @@ function VehicleInfoScreen({ navigation, context }: VehicleInfoProps) {
         placeholder="Powertrain (gasoline, diesel, hybrid, electric)"
         value={powertrain}
         onChangeText={setPowertrain}
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Ride category (rydine_regular, rydine_comfort, rydine_xl, rydine_green, black_car, black_suv)"
+        value={rideCategory}
+        onChangeText={setRideCategory}
         autoCapitalize="none"
       />
       {loading ? <ActivityIndicator /> : <Button title="Submit Vehicle Info" onPress={saveVehicle} />}
@@ -919,6 +985,9 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
   const [queueStatus, setQueueStatus] = useState<DriverAirportQueueStatus | null>(null);
   const [queueLoading, setQueueLoading] = useState(false);
   const [queueActionLoading, setQueueActionLoading] = useState(false);
+  const [queueActionMessage, setQueueActionMessage] = useState('');
+  const [queueActionCooldownUntil, setQueueActionCooldownUntil] = useState(0);
+  const [queueActionNow, setQueueActionNow] = useState(Date.now());
   const [selectedQueueRideCategory, setSelectedQueueRideCategory] = useState<'black_car' | 'suv'>('black_car');
   const [surgeVisibility, setSurgeVisibility] = useState<DriverSurgeVisibility | null>(null);
   const [selectedSurgeCategory, setSelectedSurgeCategory] = useState<'black_car' | 'suv'>('black_car');
@@ -959,6 +1028,7 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
   const lastSurgeRefreshAtRef = useRef<number>(0);
   const drivingSessionStartedAtRef = useRef<number | null>(null);
   const shiftLimitAlertedRef = useRef(false);
+  const lastQueueActionAtRef = useRef(0);
 
   const gpsQuality = useMemo(() => deriveGpsQuality(lastAccuracyMeters), [lastAccuracyMeters]);
   const proTierChipStyle = useMemo(() => getProTierChipStyle(proStatus?.currentTier?.code), [proStatus?.currentTier?.code]);
@@ -980,6 +1050,29 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
     () => Number(surgeVisibility?.surgeMultiplier || 1) >= 1.25 || surgeVisibility?.trend === 'rising',
     [surgeVisibility?.surgeMultiplier, surgeVisibility?.trend]
   );
+  const queueActionCooldownSeconds = useMemo(() => {
+    if (!queueActionCooldownUntil) {
+      return 0;
+    }
+
+    return Math.max(0, Math.ceil((queueActionCooldownUntil - queueActionNow) / 1000));
+  }, [queueActionCooldownUntil, queueActionNow]);
+  const isQueueActionCoolingDown = queueActionCooldownSeconds > 0;
+
+  useEffect(() => {
+    if (!queueActionCooldownUntil || queueActionCooldownUntil <= Date.now()) {
+      setQueueActionNow(Date.now());
+      return;
+    }
+
+    const timerId = setInterval(() => {
+      setQueueActionNow(Date.now());
+    }, 250);
+
+    return () => {
+      clearInterval(timerId);
+    };
+  }, [queueActionCooldownUntil]);
 
   const requestLocationPermission = useCallback(async () => {
     if (Platform.OS !== 'android') {
@@ -1150,6 +1243,47 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
       refreshAirportQueueStatus(coordinates).catch(() => null);
     },
     [refreshAirportQueueStatus]
+  );
+
+  const postQueueActionWithRetry = useCallback(
+    async (path: '/airport-queue/enter' | '/airport-queue/exit', body: Record<string, unknown>) => {
+      let lastErrorMessage = 'Queue request failed.';
+
+      for (let attempt = 0; attempt <= QUEUE_ACTION_RETRY_DELAYS_MS.length; attempt += 1) {
+        try {
+          const response = await fetch(`${API_BASE_URL}${path}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (response.ok) {
+            return payload;
+          }
+
+          lastErrorMessage = payload?.message || `Queue request failed with status ${response.status}.`;
+
+          const canRetry = response.status >= 500 || response.status === 429;
+          if (!canRetry || attempt === QUEUE_ACTION_RETRY_DELAYS_MS.length) {
+            throw new Error(lastErrorMessage);
+          }
+        } catch (queueNetworkError: unknown) {
+          if (queueNetworkError instanceof Error) {
+            lastErrorMessage = queueNetworkError.message || lastErrorMessage;
+          }
+
+          if (attempt === QUEUE_ACTION_RETRY_DELAYS_MS.length) {
+            throw new Error(lastErrorMessage);
+          }
+        }
+
+        await waitFor(QUEUE_ACTION_RETRY_DELAYS_MS[attempt]);
+      }
+
+      throw new Error(lastErrorMessage);
+    },
+    []
   );
 
   const refreshSurgeVisibilityThrottled = useCallback(
@@ -1433,35 +1567,37 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
       return;
     }
 
+    const now = Date.now();
+    if (queueActionLoading || now - lastQueueActionAtRef.current < QUEUE_ACTION_DEBOUNCE_MS || isQueueActionCoolingDown) {
+      setQueueActionMessage(`Please wait ${Math.max(queueActionCooldownSeconds, 1)}s before sending another queue action.`);
+      return;
+    }
+
     try {
+      lastQueueActionAtRef.current = now;
+      setQueueActionCooldownUntil(now + QUEUE_ACTION_DEBOUNCE_MS);
       setQueueActionLoading(true);
+      setQueueActionMessage('Submitting queue entry...');
 
       const resolvedQueueType = queueStatus?.isInEventVenue ? 'event' : queueStatus?.isInAirportLot ? 'airport' : undefined;
       const resolvedAirportCode = resolvedQueueType === 'airport' ? queueStatus?.detectedAirport?.code : undefined;
       const resolvedEventCode = resolvedQueueType === 'event' ? queueStatus?.detectedEvent?.code : undefined;
 
-      const response = await fetch(`${API_BASE_URL}/airport-queue/enter`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          driverId: context.driverId,
-          latitude: coordinates.latitude,
-          longitude: coordinates.longitude,
-          queueType: resolvedQueueType,
-          airportCode: resolvedAirportCode,
-          eventCode: resolvedEventCode,
-          rideCategory: selectedQueueRideCategory,
-        }),
+      await postQueueActionWithRetry('/airport-queue/enter', {
+        driverId: context.driverId,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+        queueType: resolvedQueueType,
+        airportCode: resolvedAirportCode,
+        eventCode: resolvedEventCode,
+        rideCategory: selectedQueueRideCategory,
       });
 
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.message || 'Failed to enter operations queue.');
-      }
-
       refreshAirportQueueStatusThrottled(coordinates, true);
+      setQueueActionMessage('Queue entry updated successfully.');
     } catch (queueError: unknown) {
       const message = queueError instanceof Error ? queueError.message : 'Unable to enter operations queue.';
+      setQueueActionMessage(message);
       Alert.alert('Queue Error', message);
     } finally {
       setQueueActionLoading(false);
@@ -1472,8 +1608,12 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
     queueStatus?.detectedEvent?.code,
     queueStatus?.isInAirportLot,
     queueStatus?.isInEventVenue,
+    isQueueActionCoolingDown,
+    queueActionCooldownSeconds,
+    queueActionLoading,
     refreshAirportQueueStatusThrottled,
     selectedQueueRideCategory,
+    postQueueActionWithRetry,
   ]);
 
   const exitAirportQueue = useCallback(
@@ -1482,37 +1622,47 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
         return;
       }
 
+      const now = Date.now();
+      if (queueActionLoading || now - lastQueueActionAtRef.current < QUEUE_ACTION_DEBOUNCE_MS || isQueueActionCoolingDown) {
+        setQueueActionMessage(`Please wait ${Math.max(queueActionCooldownSeconds, 1)}s before sending another queue action.`);
+        return;
+      }
+
       try {
+        lastQueueActionAtRef.current = now;
+        setQueueActionCooldownUntil(now + QUEUE_ACTION_DEBOUNCE_MS);
         setQueueActionLoading(true);
+        setQueueActionMessage('Submitting queue exit...');
 
         const activeQueueEntry = queueStatus?.queueEntry;
 
-        const response = await fetch(`${API_BASE_URL}/airport-queue/exit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            driverId: context.driverId,
-            queueType: activeQueueEntry?.queueType,
-            airportCode: activeQueueEntry?.airportCode || undefined,
-            eventCode: activeQueueEntry?.eventCode || undefined,
-            reason,
-          }),
+        await postQueueActionWithRetry('/airport-queue/exit', {
+          driverId: context.driverId,
+          queueType: activeQueueEntry?.queueType,
+          airportCode: activeQueueEntry?.airportCode || undefined,
+          eventCode: activeQueueEntry?.eventCode || undefined,
+          reason,
         });
 
-        const payload = await response.json();
-        if (!response.ok) {
-          throw new Error(payload.message || 'Failed to exit operations queue.');
-        }
-
         refreshAirportQueueStatusThrottled(latestCoordinatesRef.current, true);
+        setQueueActionMessage('Queue exit updated successfully.');
       } catch (queueError: unknown) {
         const message = queueError instanceof Error ? queueError.message : 'Unable to exit operations queue.';
+        setQueueActionMessage(message);
         Alert.alert('Queue Error', message);
       } finally {
         setQueueActionLoading(false);
       }
     },
-    [context.driverId, queueStatus?.queueEntry, refreshAirportQueueStatusThrottled]
+    [
+      context.driverId,
+      isQueueActionCoolingDown,
+      queueActionCooldownSeconds,
+      queueActionLoading,
+      queueStatus?.queueEntry,
+      refreshAirportQueueStatusThrottled,
+      postQueueActionWithRetry,
+    ]
   );
 
   const formatEstimatedWait = useCallback((minutes: number | null | undefined) => {
@@ -1613,7 +1763,7 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
 
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
-      Alert.alert('Permission Required', 'Location permission is required to enable live tracking.');
+      Alert.alert('Location Permission', 'Enable location access to start live tracking.');
       return;
     }
 
@@ -1998,18 +2148,18 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
             </>
           )}
 
-          <Text style={styles.queueTitle}>Destination Key ({DESTINATION_KEY_DAILY_LIMIT}/day)</Text>
+          <Text style={styles.queueTitle}>Pre-Assigned Destination ({DESTINATION_KEY_DAILY_LIMIT}/day)</Text>
           <TextInput
             style={styles.input}
-            placeholder="Set destination"
+            placeholder="Enter destination"
             value={destinationKeyInput}
             onChangeText={setDestinationKeyInput}
           />
-          <Text style={styles.queueText}>Remaining today: {destinationKeysRemaining}</Text>
-          <Button title="Activate Destination Key" onPress={() => activateDestinationKey().catch(() => null)} />
+          <Text style={styles.queueText}>Available: {destinationKeysRemaining} remaining</Text>
+          <Button title="Set Destination" onPress={() => activateDestinationKey().catch(() => null)} />
           {destinationUsage.slice(-DESTINATION_KEY_DAILY_LIMIT).map((entry, index) => (
             <Text key={`${entry.usedAt}-${index}`} style={styles.tripSubtleText}>
-              Used: {entry.destination} ({new Date(entry.usedAt).toLocaleTimeString()})
+              Set to: {entry.destination} ({new Date(entry.usedAt).toLocaleTimeString()})
             </Text>
           ))}
         </View>
@@ -2118,6 +2268,10 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
           </Text>
           <Text style={styles.queueText}>Queue position: {queueStatus?.queueEntry?.position ?? 'N/A'}</Text>
           <Text style={styles.queueText}>Estimated wait: {formatEstimatedWait(queueStatus?.queueEntry?.estimatedWaitMinutes)}</Text>
+          {isQueueActionCoolingDown ? (
+            <Text style={styles.queueCooldownText}>Action cooldown: retry in {queueActionCooldownSeconds}s</Text>
+          ) : null}
+          {queueActionMessage ? <Text style={styles.queueActionMessage}>{queueActionMessage}</Text> : null}
           {queueStatus?.queueEntry?.airportCode ? (
             <Text style={styles.queueText}>Queue airport: {queueStatus.queueEntry.airportCode}</Text>
           ) : null}
@@ -2142,9 +2296,21 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
             {(queueStatus?.isInAirportLot || queueStatus?.isInEventVenue) && queueStatus?.queueEntry?.status !== 'waiting' ? (
               <View style={styles.tripActionButton}>
                 <Button
-                  title={queueActionLoading ? 'Joining...' : queueStatus?.isInEventVenue ? 'Join Event Queue' : 'Join Airport Queue'}
+                  title={
+                    queueActionLoading
+                      ? 'Joining...'
+                      : isQueueActionCoolingDown
+                      ? `Retry in ${queueActionCooldownSeconds}s`
+                      : queueStatus?.isInEventVenue
+                      ? 'Join Event Queue'
+                      : 'Join Airport Queue'
+                  }
                   onPress={enterAirportQueue}
-                  disabled={queueActionLoading || (queueStatus?.isInEventVenue === true && queueStatus?.detectedEvent?.queueOpen === false)}
+                  disabled={
+                    queueActionLoading ||
+                    isQueueActionCoolingDown ||
+                    (queueStatus?.isInEventVenue === true && queueStatus?.detectedEvent?.queueOpen === false)
+                  }
                 />
               </View>
             ) : null}
@@ -2152,10 +2318,10 @@ function PendingApprovalScreen({ navigation, context }: PendingApprovalProps) {
             {queueStatus?.queueEntry?.status === 'waiting' ? (
               <View style={styles.tripActionButton}>
                 <Button
-                  title={queueActionLoading ? 'Leaving...' : 'Leave Queue'}
+                  title={queueActionLoading ? 'Leaving...' : isQueueActionCoolingDown ? `Retry in ${queueActionCooldownSeconds}s` : 'Leave Queue'}
                   onPress={() => exitAirportQueue()}
                   color="#dc2626"
-                  disabled={queueActionLoading}
+                  disabled={queueActionLoading || isQueueActionCoolingDown}
                 />
               </View>
             ) : null}
@@ -2795,10 +2961,35 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
     };
   }, [context.driverId, currentTrip, syncRoutePoint]);
 
+  const airportWindows = AIRPORT_OPPORTUNITY_WINDOWS.slice(0, 3);
+  const payoutHeadline = weeklyPayouts?.totals?.driverEarnings;
+  const currentTripStatusLabel = currentTrip ? currentTrip.status.replace(/_/g, ' ') : 'No active trip';
+
   return (
     <ScrollView contentContainerStyle={styles.screenContainer}>
       {loading ? <ActivityIndicator /> : null}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <View style={styles.dashboardHeroCard}>
+        <Text style={styles.dashboardEyebrow}>Driver Control Center</Text>
+        <Text style={styles.dashboardTitle}>Stay ahead of live demand</Text>
+        <Text style={styles.tripSubtleText}>Realtime requests, payout visibility, and airport intel in one premium dashboard.</Text>
+
+        <View style={styles.dashboardStatsRow}>
+          <View style={styles.dashboardStatCard}>
+            <Text style={styles.dashboardStatValue}>{incomingTrips.length}</Text>
+            <Text style={styles.dashboardStatLabel}>Incoming now</Text>
+          </View>
+          <View style={styles.dashboardStatCard}>
+            <Text style={styles.dashboardStatValue}>{currentTrip ? currentTrip.status.replace(/_/g, ' ') : 'idle'}</Text>
+            <Text style={styles.dashboardStatLabel}>Current status</Text>
+          </View>
+          <View style={styles.dashboardStatCard}>
+            <Text style={styles.dashboardStatValue}>{formatMoney(payoutHeadline)}</Text>
+            <Text style={styles.dashboardStatLabel}>Payout window</Text>
+          </View>
+        </View>
+      </View>
 
       <View style={styles.tripSectionCard}>
         <View style={styles.sectionHeaderRow}>
@@ -2812,16 +3003,41 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
 
       <View style={styles.tripSectionCard}>
         <View style={styles.sectionHeaderRow}>
+          <Text style={styles.tripSectionTitle}>City Event Hub</Text>
+          <Text style={[styles.statusChip, styles.statusChipNeutral]}>LIVE OPS</Text>
+        </View>
+        <Text style={styles.tripSubtleText}>Strategic time windows to position for higher-value pickup demand.</Text>
+        {airportWindows.map(window => (
+          <View key={`${window.airportCode}-${window.label}`} style={styles.tripCard}>
+            <Text style={styles.tripText}>{window.label}</Text>
+            <Text style={styles.tripSubtleText}>{window.airportName}</Text>
+            <Text style={styles.tripSubtleText}>{window.hours}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.tripSectionCard}>
+        <Text style={styles.tripSectionTitle}>Airport Intel</Text>
+        <Text style={styles.tripSubtleText}>Fast positioning points to reduce dead miles before the next request wave.</Text>
+        {AIRPORT_EARNING_HOTSPOTS.map(hotspot => (
+          <View key={hotspot.id} style={styles.tripCard}>
+            <Text style={styles.tripText}>{hotspot.label}</Text>
+            <Text style={styles.tripSubtleText}>{hotspot.query}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.tripSectionCard}>
+        <View style={styles.sectionHeaderRow}>
           <Text style={styles.tripSectionTitle}>Earnings Visibility</Text>
           <Text style={[styles.statusChip, isEarningsVisible ? styles.statusChipOnline : styles.statusChipOffline]}>
             {isEarningsVisible ? 'VISIBLE' : 'HIDDEN'}
           </Text>
         </View>
         <Text style={styles.tripSubtleText}>Use this eye toggle before handing your phone to riders.</Text>
-        <Button
-          title={isEarningsVisible ? 'Hide Earnings' : 'Show Earnings'}
-          onPress={() => setIsEarningsVisible(previous => !previous)}
-        />
+        <Pressable style={({ pressed }) => [styles.secondarySurfaceButton, pressed ? styles.surfaceButtonPressed : null]} onPress={() => setIsEarningsVisible(previous => !previous)}>
+          <Text style={styles.secondarySurfaceButtonText}>{isEarningsVisible ? 'Hide Earnings' : 'Show Earnings'}</Text>
+        </Pressable>
       </View>
 
       <View style={styles.tripSectionCard}>
@@ -2866,9 +3082,26 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
       </View>
 
       <View style={styles.tripSectionCard}>
-        <Text style={styles.tripSectionTitle}>Current Assigned Trip</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.tripSectionTitle}>Current Assigned Trip</Text>
+          <Text style={[styles.statusChip, currentTrip ? styles.statusChipOnline : styles.statusChipNeutral]}>{currentTripStatusLabel}</Text>
+        </View>
         {currentTrip ? (
           <View style={styles.tripCard}>
+            <View style={styles.dashboardStatsRow}>
+              <View style={styles.dashboardStatCard}>
+                <Text style={styles.dashboardStatValue}>{formatMoney(currentTrip.upfrontFare ?? currentTrip.fareEstimate)}</Text>
+                <Text style={styles.dashboardStatLabel}>Upfront fare</Text>
+              </View>
+              <View style={styles.dashboardStatCard}>
+                <Text style={styles.dashboardStatValue}>{Number(currentTrip.actualDistanceMiles || 0).toFixed(1)} mi</Text>
+                <Text style={styles.dashboardStatLabel}>Tracked miles</Text>
+              </View>
+              <View style={styles.dashboardStatCard}>
+                <Text style={styles.dashboardStatValue}>{Number(currentTrip.actualDurationMinutes || 0).toFixed(0)} min</Text>
+                <Text style={styles.dashboardStatLabel}>Tracked time</Text>
+              </View>
+            </View>
             <Text style={styles.tripText}>Rider: {currentTrip.rider?.name || 'Unknown rider'}</Text>
             <Text style={styles.tripText}>Pickup: {currentTrip.pickup.address || `${currentTrip.pickup.latitude}, ${currentTrip.pickup.longitude}`}</Text>
             <Text style={styles.tripText}>Dropoff: {currentTrip.dropoff.address || `${currentTrip.dropoff.latitude}, ${currentTrip.dropoff.longitude}`}</Text>
@@ -2884,27 +3117,23 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
             <Text style={styles.tripText}>Tracked duration: {Number(currentTrip.actualDurationMinutes || 0).toFixed(1)} min</Text>
             <Text style={styles.tripText}>Last route sync: {lastRouteSyncAt ? new Date(lastRouteSyncAt).toLocaleTimeString() : 'Not synced yet'}</Text>
 
-            <Button
-              title={currentTrip.status === 'in_progress' ? 'Navigate to Dropoff' : 'Navigate to Pickup'}
-              onPress={navigateToTripDestination}
-            />
+            <View style={styles.surfaceActionRow}>
+              <Pressable style={({ pressed }) => [styles.primarySurfaceButton, pressed ? styles.surfaceButtonPressed : null]} onPress={navigateToTripDestination}>
+                <Text style={styles.primarySurfaceButtonText}>{currentTrip.status === 'in_progress' ? 'Navigate to Dropoff' : 'Navigate to Pickup'}</Text>
+              </Pressable>
 
-            {['driver_accepted', 'driver_arrived_pickup'].includes(currentTrip.status) ? (
-              <Button
-                title={processingTripId === currentTrip._id ? 'Starting...' : 'Start Trip'}
-                onPress={startCurrentTrip}
-                disabled={processingTripId === currentTrip._id}
-              />
-            ) : null}
+              {['driver_accepted', 'driver_arrived_pickup'].includes(currentTrip.status) ? (
+                <Pressable style={({ pressed }) => [styles.secondarySurfaceButton, pressed ? styles.surfaceButtonPressed : null, processingTripId === currentTrip._id ? styles.disabledSurfaceButton : null]} onPress={processingTripId === currentTrip._id ? undefined : startCurrentTrip}>
+                  <Text style={styles.secondarySurfaceButtonText}>{processingTripId === currentTrip._id ? 'Starting...' : 'Start Trip'}</Text>
+                </Pressable>
+              ) : null}
 
-            {currentTrip.status === 'in_progress' ? (
-              <Button
-                title={processingTripId === currentTrip._id ? 'Ending...' : 'End Trip'}
-                onPress={endCurrentTrip}
-                disabled={processingTripId === currentTrip._id}
-                color="#16a34a"
-              />
-            ) : null}
+              {currentTrip.status === 'in_progress' ? (
+                <Pressable style={({ pressed }) => [styles.dangerSurfaceButton, pressed ? styles.surfaceButtonPressed : null, processingTripId === currentTrip._id ? styles.disabledSurfaceButton : null]} onPress={processingTripId === currentTrip._id ? undefined : endCurrentTrip}>
+                  <Text style={styles.primarySurfaceButtonText}>{processingTripId === currentTrip._id ? 'Ending...' : 'End Trip'}</Text>
+                </Pressable>
+              ) : null}
+            </View>
 
             {tripTrackingError ? <Text style={styles.errorText}>{tripTrackingError}</Text> : null}
           </View>
@@ -2915,7 +3144,10 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
 
       {pendingRiderFeedbackTrip ? (
         <View style={styles.tripSectionCard}>
-          <Text style={styles.tripSectionTitle}>Rate Rider</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.tripSectionTitle}>Rate Rider</Text>
+            <Text style={[styles.statusChip, styles.statusChipNeutral]}>POST-TRIP</Text>
+          </View>
           <Text style={styles.tripSubtleText}>Trip: {pendingRiderFeedbackTrip._id.slice(-8)}</Text>
           <Text style={styles.tripSubtleText}>Rider: {pendingRiderFeedbackTrip.rider?.name || 'Unknown rider'}</Text>
           <TextInput
@@ -2948,18 +3180,33 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
             value={riderFeedbackForm.comments}
             onChangeText={value => setRiderFeedbackForm(previous => ({ ...previous, comments: value }))}
           />
-          <Button
-            title={riderFeedbackSubmitting ? 'Submitting...' : 'Submit Rider Rating'}
-            onPress={() => submitRiderFeedback().catch(() => null)}
-            disabled={riderFeedbackSubmitting}
-          />
+          <Pressable style={({ pressed }) => [styles.primarySurfaceButton, pressed ? styles.surfaceButtonPressed : null, riderFeedbackSubmitting ? styles.disabledSurfaceButton : null]} onPress={riderFeedbackSubmitting ? undefined : () => submitRiderFeedback().catch(() => null)}>
+            <Text style={styles.primarySurfaceButtonText}>{riderFeedbackSubmitting ? 'Submitting...' : 'Submit Rider Rating'}</Text>
+          </Pressable>
         </View>
       ) : null}
 
       <View style={styles.tripSectionCard}>
-        <Text style={styles.tripSectionTitle}>Incoming Requests</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.tripSectionTitle}>Incoming Requests</Text>
+          <Text style={[styles.statusChip, incomingTrips.length ? styles.statusChipOnline : styles.statusChipNeutral]}>{incomingTrips.length} live</Text>
+        </View>
         {incomingTrips.map(trip => (
           <View key={trip._id} style={styles.tripCard}>
+            <View style={styles.dashboardStatsRow}>
+              <View style={styles.dashboardStatCard}>
+                <Text style={styles.dashboardStatValue}>{formatMoney(trip.upfrontFare ?? trip.fareEstimate)}</Text>
+                <Text style={styles.dashboardStatLabel}>Fare</Text>
+              </View>
+              <View style={styles.dashboardStatCard}>
+                <Text style={styles.dashboardStatValue}>x{Number(trip.surgeMultiplier || 1).toFixed(2)}</Text>
+                <Text style={styles.dashboardStatLabel}>Surge</Text>
+              </View>
+              <View style={styles.dashboardStatCard}>
+                <Text style={styles.dashboardStatValue}>{trip.teenPickup ? 'Teen' : 'Standard'}</Text>
+                <Text style={styles.dashboardStatLabel}>Trip type</Text>
+              </View>
+            </View>
             <Text style={styles.tripText}>Rider: {trip.rider?.name || 'Unknown rider'}</Text>
             <Text style={styles.tripText}>Pickup: {trip.pickup.address || `${trip.pickup.latitude}, ${trip.pickup.longitude}`}</Text>
             <Text style={styles.tripText}>Dropoff: {trip.dropoff.address || `${trip.dropoff.latitude}, ${trip.dropoff.longitude}`}</Text>
@@ -2971,21 +3218,12 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
             <Text style={styles.tripText}>Surge multiplier: x{Number(trip.surgeMultiplier || 1).toFixed(2)}</Text>
             <Text style={styles.tripText}>Driver earnings: {formatMoney(trip.driverEarnings)}</Text>
             <View style={styles.tripActionRow}>
-              <View style={styles.tripActionButton}>
-                <Button
-                  title={processingTripId === trip._id ? 'Processing...' : 'Accept'}
-                  onPress={() => respondToRequest(trip._id, 'accept')}
-                  disabled={processingTripId === trip._id}
-                />
-              </View>
-              <View style={styles.tripActionButton}>
-                <Button
-                  title={processingTripId === trip._id ? 'Processing...' : 'Decline'}
-                  onPress={() => respondToRequest(trip._id, 'decline')}
-                  disabled={processingTripId === trip._id}
-                  color="#dc2626"
-                />
-              </View>
+              <Pressable style={({ pressed }) => [styles.primarySurfaceButton, pressed ? styles.surfaceButtonPressed : null, processingTripId === trip._id ? styles.disabledSurfaceButton : null, styles.tripActionButton]} onPress={processingTripId === trip._id ? undefined : () => respondToRequest(trip._id, 'accept')}>
+                <Text style={styles.primarySurfaceButtonText}>{processingTripId === trip._id ? 'Processing...' : 'Accept'}</Text>
+              </Pressable>
+              <Pressable style={({ pressed }) => [styles.dangerSurfaceButton, pressed ? styles.surfaceButtonPressed : null, processingTripId === trip._id ? styles.disabledSurfaceButton : null, styles.tripActionButton]} onPress={processingTripId === trip._id ? undefined : () => respondToRequest(trip._id, 'decline')}>
+                <Text style={styles.primarySurfaceButtonText}>{processingTripId === trip._id ? 'Processing...' : 'Decline'}</Text>
+              </Pressable>
             </View>
           </View>
         ))}
@@ -2993,7 +3231,9 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
         {!loading && incomingTrips.length === 0 ? <Text style={styles.tripSubtleText}>No incoming trip requests.</Text> : null}
       </View>
 
-      <Button title="Refresh Driver Data" onPress={() => refreshEverything().catch(() => null)} />
+      <Pressable style={({ pressed }) => [styles.secondarySurfaceButton, pressed ? styles.surfaceButtonPressed : null]} onPress={() => refreshEverything().catch(() => null)}>
+        <Text style={styles.secondarySurfaceButtonText}>Refresh Driver Data</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -3001,23 +3241,27 @@ function IncomingRequestsScreen({ context }: IncomingRequestsProps) {
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
+    backgroundColor: DRIVER_COLORS.background,
   },
   screenContainer: {
     flexGrow: 1,
     padding: 16,
     gap: 12,
     justifyContent: 'center',
+    backgroundColor: DRIVER_COLORS.background,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
+    borderWidth: 0,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    backgroundColor: DRIVER_COLORS.surfaceHighest,
+    color: DRIVER_COLORS.textPrimary,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
+    color: DRIVER_COLORS.textPrimary,
   },
   spacer: {
     height: 12,
@@ -3026,18 +3270,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 8,
+    color: DRIVER_COLORS.textPrimary,
   },
   statusMessage: {
     fontSize: 16,
     marginBottom: 16,
+    color: DRIVER_COLORS.textSecondary,
   },
   trackingCard: {
     marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 10,
+    borderRadius: 16,
     padding: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: DRIVER_COLORS.surface,
     gap: 6,
   },
   trackingHeaderRow: {
@@ -3058,24 +3302,25 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     fontSize: 11,
     fontWeight: '700',
-    color: '#1f2937',
+    color: DRIVER_COLORS.textPrimary,
     overflow: 'hidden',
   },
   statusChipOnline: {
-    backgroundColor: '#dcfce7',
-    color: '#166534',
+    backgroundColor: DRIVER_COLORS.successSoft,
+    color: DRIVER_COLORS.successText,
   },
   statusChipOffline: {
-    backgroundColor: '#fee2e2',
-    color: '#991b1b',
+    backgroundColor: DRIVER_COLORS.dangerSoft,
+    color: DRIVER_COLORS.dangerText,
   },
   statusChipNeutral: {
-    backgroundColor: '#e5e7eb',
-    color: '#374151',
+    backgroundColor: DRIVER_COLORS.neutralSoft,
+    color: DRIVER_COLORS.textSecondary,
   },
   trackingTitle: {
     fontSize: 15,
     fontWeight: '700',
+    color: DRIVER_COLORS.textPrimary,
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -3085,39 +3330,48 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 14,
     fontWeight: '600',
+    color: DRIVER_COLORS.textPrimary,
   },
   trackingText: {
     fontSize: 14,
-    color: '#374151',
+    color: DRIVER_COLORS.textSecondary,
   },
   gpsQualityGood: {
-    color: '#15803d',
+    color: DRIVER_COLORS.successText,
   },
   gpsQualityPoor: {
-    color: '#b91c1c',
+    color: DRIVER_COLORS.dangerText,
   },
   helperNote: {
     fontSize: 13,
-    color: '#6b7280',
+    color: DRIVER_COLORS.textSecondary,
     marginTop: 4,
   },
   queueCard: {
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    backgroundColor: '#f9fafb',
+    borderRadius: 14,
+    backgroundColor: DRIVER_COLORS.surfaceHigh,
     padding: 10,
     gap: 4,
   },
   queueTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: DRIVER_COLORS.textPrimary,
   },
   queueText: {
     fontSize: 13,
-    color: '#374151',
+    color: DRIVER_COLORS.textSecondary,
+  },
+  queueActionMessage: {
+    fontSize: 13,
+    color: '#b1c5ff',
+    fontWeight: '600',
+  },
+  queueCooldownText: {
+    fontSize: 13,
+    color: '#ffb694',
+    fontWeight: '700',
   },
   queueActionsRow: {
     flexDirection: 'row',
@@ -3138,36 +3392,33 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    color: '#dc2626',
+    color: DRIVER_COLORS.dangerText,
     marginTop: 4,
   },
   tripSectionCard: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 10,
+    borderRadius: 18,
     padding: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: DRIVER_COLORS.surface,
     gap: 10,
   },
   tripSectionTitle: {
     fontSize: 16,
     fontWeight: '700',
+    color: DRIVER_COLORS.textPrimary,
   },
   tripCard: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 10,
     gap: 6,
-    backgroundColor: '#fafafa',
+    backgroundColor: DRIVER_COLORS.surfaceHigh,
   },
   tripText: {
     fontSize: 14,
-    color: '#1f2937',
+    color: DRIVER_COLORS.textPrimary,
   },
   tripSubtleText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: DRIVER_COLORS.textSecondary,
   },
   tripActionRow: {
     flexDirection: 'row',
@@ -3177,6 +3428,103 @@ const styles = StyleSheet.create({
   tripActionButton: {
     flex: 1,
     minWidth: 120,
+  },
+  surfaceActionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 8,
+  },
+  primarySurfaceButton: {
+    flex: 1,
+    minWidth: 120,
+    backgroundColor: DRIVER_COLORS.accent,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondarySurfaceButton: {
+    backgroundColor: DRIVER_COLORS.surfaceHighest,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dangerSurfaceButton: {
+    flex: 1,
+    minWidth: 120,
+    backgroundColor: DRIVER_COLORS.dangerSoft,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  surfaceButtonPressed: {
+    opacity: 0.86,
+  },
+  disabledSurfaceButton: {
+    opacity: 0.5,
+  },
+  primarySurfaceButtonText: {
+    color: '#fffeff',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  secondarySurfaceButtonText: {
+    color: DRIVER_COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  dashboardHeroCard: {
+    borderRadius: 24,
+    backgroundColor: DRIVER_COLORS.surfaceHigh,
+    padding: 18,
+    gap: 10,
+    shadowColor: DRIVER_COLORS.shadow,
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    elevation: 8,
+  },
+  dashboardEyebrow: {
+    color: DRIVER_COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
+  },
+  dashboardTitle: {
+    color: DRIVER_COLORS.textPrimary,
+    fontSize: 28,
+    fontWeight: '800',
+  },
+  dashboardStatsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  dashboardStatCard: {
+    flex: 1,
+    backgroundColor: DRIVER_COLORS.surfaceHighest,
+    borderRadius: 16,
+    padding: 12,
+    gap: 4,
+  },
+  dashboardStatValue: {
+    color: DRIVER_COLORS.textPrimary,
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  dashboardStatLabel: {
+    color: DRIVER_COLORS.textSecondary,
+    fontSize: 12,
   },
 });
 

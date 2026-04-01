@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,42 +8,97 @@ import {
   Alert,
   PermissionsAndroid,
   Platform,
-  NativeModules,
-  AsyncStorage,
 } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import { io } from 'socket.io-client';
+import { BACKEND_URL } from '../config/network';
 
 const { width, height } = Dimensions.get('window');
-const MANUAL_BACKEND_HOST = '10.0.0.70';
-const resolveDevBackendHost = () => {
-  const manualHost = MANUAL_BACKEND_HOST.trim();
-  if (manualHost) {
-    return manualHost;
-  }
-
-  // On physical devices, Metro scriptURL usually contains the host machine LAN IP.
-  const scriptURL = (NativeModules as { SourceCode?: { scriptURL?: string } }).SourceCode?.scriptURL || '';
-  const scriptHostMatch = scriptURL.match(/^https?:\/\/([^/:]+)/i);
-  const scriptHost = scriptHostMatch?.[1]?.trim();
-
-  if (scriptHost && scriptHost !== 'localhost' && scriptHost !== '127.0.0.1') {
-    return scriptHost;
-  }
-
-  return Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-};
-
-const DEFAULT_BACKEND_HOST = resolveDevBackendHost();
 
 interface LocationData {
   latitude: number;
   longitude: number;
-  accuracy?: number;
-  speed?: number;
-  heading?: number;
-  altitude?: number;
+  accuracy?: number | null;
+  speed?: number | null;
+  heading?: number | null;
+  altitude?: number | null;
+}
+
+type TrackingQuality = 'high' | 'medium' | 'low';
+
+const MAX_ACCEPTABLE_ACCURACY_METERS = 120;
+const SOFT_ACCURACY_THRESHOLD_METERS = 65;
+const MAX_INFERRED_SPEED_KMH = 180;
+const MAX_JUMP_DISTANCE_METERS = 250;
+const POI_REFRESH_INTERVAL_MS = 12000;
+const POI_REFRESH_DISTANCE_METERS = 120;
+const MAX_POLYLINE_POINTS = 350;
+
+function speedMpsToKph(speedMps?: number | null): number {
+  if (!Number.isFinite(Number(speedMps)) || Number(speedMps) < 0) {
+    return 0;
+  }
+
+  return Number(speedMps) * 3.6;
+}
+
+function haversineDistanceMeters(a: Pick<LocationData, 'latitude' | 'longitude'>, b: Pick<LocationData, 'latitude' | 'longitude'>): number {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusMeters = 6371000;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const lat1 = toRad(a.latitude);
+  const lat2 = toRad(b.latitude);
+
+  const haversine =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  return 2 * earthRadiusMeters * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function getTrackingQuality(accuracy?: number | null): TrackingQuality {
+  const resolvedAccuracy = Number.isFinite(Number(accuracy)) ? Number(accuracy) : MAX_ACCEPTABLE_ACCURACY_METERS;
+
+  if (resolvedAccuracy <= 20) {
+    return 'high';
+  }
+
+  if (resolvedAccuracy <= SOFT_ACCURACY_THRESHOLD_METERS) {
+    return 'medium';
+  }
+
+  return 'low';
+}
+
+type RideCategory = 'black_car' | 'black_suv';
+
+const POI_CATEGORY_ICONS: Record<string, string> = {
+  restaurant: '🍽️',
+  gas_station: '⛽',
+  hotel: '🏨',
+  pharmacy: '💊',
+};
+
+interface AirportPickupInstructions {
+  operationType?: string;
+  isAirportPickup?: boolean;
+  airport?: {
+    code: string;
+    name: string;
+  } | null;
+  terminal?: string | null;
+  pickupZone?: {
+    code?: string;
+    name?: string;
+  } | null;
+  pickupLane?: {
+    code?: string;
+    name?: string;
+    message?: string;
+  } | null;
+  instructions?: string[];
 }
 
 interface RydinexMapProps {
@@ -54,20 +109,29 @@ interface RydinexMapProps {
   onLocationUpdate?: (location: LocationData) => void;
   initialMapType?: 'standard' | 'satellite' | 'hybrid';
   showPOI?: boolean;
+  rideCategory?: RideCategory;
+  enableAirportGuidance?: boolean;
 }
 
 export default function RydinexMap({
   tripId,
   userId,
   userType,
-  backendUrl = `http://${DEFAULT_BACKEND_HOST}:4000`,
+  backendUrl = BACKEND_URL,
   onLocationUpdate,
   initialMapType = 'standard',
   showPOI = true,
+  rideCategory = 'black_car',
+  enableAirportGuidance = true,
 }: RydinexMapProps) {
   const mapRef = useRef<MapView>(null);
   const socketRef = useRef<any>(null);
   const locationWatchRef = useRef<number | null>(null);
+  const airportRefreshRef = useRef(0);
+  const lastAcceptedLocationRef = useRef<LocationData | null>(null);
+  const lastAcceptedTimestampRef = useRef(0);
+  const lastPoiFetchRef = useRef(0);
+  const lastPoiFetchLocationRef = useRef<LocationData | null>(null);
 
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
   const [driverLocation, setDriverLocation] = useState<LocationData | null>(null);
@@ -81,6 +145,100 @@ export default function RydinexMap({
     duration: 0,
     avgSpeed: 0,
   });
+  const [trackingQuality, setTrackingQuality] = useState<TrackingQuality>('medium');
+  const [airportGuidance, setAirportGuidance] = useState<AirportPickupInstructions | null>(null);
+  const [airportGuidanceError, setAirportGuidanceError] = useState('');
+
+  const shouldRefreshPoi = useCallback((location: LocationData, now: number) => {
+    if (now - lastPoiFetchRef.current >= POI_REFRESH_INTERVAL_MS) {
+      return true;
+    }
+
+    if (!lastPoiFetchLocationRef.current) {
+      return true;
+    }
+
+    return haversineDistanceMeters(lastPoiFetchLocationRef.current, location) >= POI_REFRESH_DISTANCE_METERS;
+  }, []);
+
+  const acceptAndSmoothLocation = useCallback((rawLocation: LocationData, now: number) => {
+    const previous = lastAcceptedLocationRef.current;
+    const resolvedAccuracy = Number.isFinite(Number(rawLocation.accuracy)) ? Number(rawLocation.accuracy) : MAX_ACCEPTABLE_ACCURACY_METERS;
+
+    if (resolvedAccuracy > MAX_ACCEPTABLE_ACCURACY_METERS) {
+      return null;
+    }
+
+    if (!previous) {
+      const firstAccepted = {
+        ...rawLocation,
+        speed: speedMpsToKph(rawLocation.speed),
+      };
+
+      lastAcceptedLocationRef.current = firstAccepted;
+      lastAcceptedTimestampRef.current = now;
+      return firstAccepted;
+    }
+
+    const timeDeltaSeconds = Math.max((now - lastAcceptedTimestampRef.current) / 1000, 1);
+    const jumpDistanceMeters = haversineDistanceMeters(previous, rawLocation);
+    const inferredSpeedKmh = (jumpDistanceMeters / timeDeltaSeconds) * 3.6;
+
+    if (jumpDistanceMeters > MAX_JUMP_DISTANCE_METERS && inferredSpeedKmh > MAX_INFERRED_SPEED_KMH) {
+      return null;
+    }
+
+    const smoothingAlpha = resolvedAccuracy <= 15 ? 0.82 : resolvedAccuracy <= 35 ? 0.62 : 0.45;
+    const accepted = {
+      latitude: previous.latitude + (rawLocation.latitude - previous.latitude) * smoothingAlpha,
+      longitude: previous.longitude + (rawLocation.longitude - previous.longitude) * smoothingAlpha,
+      accuracy: rawLocation.accuracy,
+      speed: speedMpsToKph(rawLocation.speed),
+      heading: rawLocation.heading,
+      altitude: rawLocation.altitude,
+    };
+
+    lastAcceptedLocationRef.current = accepted;
+    lastAcceptedTimestampRef.current = now;
+
+    return accepted;
+  }, []);
+
+  const refreshAirportGuidance = useCallback(
+    async (location: LocationData) => {
+      if (!enableAirportGuidance || userType !== 'rider') {
+        return;
+      }
+
+      const query = new URLSearchParams({
+        latitude: String(location.latitude),
+        longitude: String(location.longitude),
+        rideCategory,
+      });
+
+      try {
+        const response = await fetch(`${backendUrl}/api/airport-queue/pickup-instructions?${query.toString()}`);
+        const payload = await response.json().catch(() => ({}));
+
+        if (response.status === 403) {
+          setAirportGuidanceError(payload?.message || 'Pickup is not allowed from this area.');
+          setAirportGuidance(null);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(payload?.message || 'Unable to fetch airport guidance.');
+        }
+
+        setAirportGuidance(payload);
+        setAirportGuidanceError('');
+      } catch (requestError: unknown) {
+        const message = requestError instanceof Error ? requestError.message : 'Unable to fetch airport guidance.';
+        setAirportGuidanceError(message);
+      }
+    },
+    [backendUrl, enableAirportGuidance, rideCategory, userType]
+  );
 
   // Request location permissions
   const requestLocationPermission = async () => {
@@ -186,10 +344,14 @@ export default function RydinexMap({
       Geolocation.getCurrentPosition(
         position => {
           const { latitude, longitude, accuracy, altitude } = position.coords;
-          const location = { latitude, longitude, accuracy, altitude };
+          const seededLocation = { latitude, longitude, accuracy, altitude, speed: 0, heading: null };
+          const now = Date.now();
+          const location = acceptAndSmoothLocation(seededLocation, now) || seededLocation;
 
           setCurrentLocation(location);
           setPolylinePoints([location]);
+          setTrackingQuality(getTrackingQuality(location.accuracy));
+          refreshAirportGuidance(location);
 
           // Pan to current location
           mapRef.current?.animateToRegion({
@@ -214,24 +376,48 @@ export default function RydinexMap({
       locationWatchRef.current = Geolocation.watchPosition(
         position => {
           const { latitude, longitude, accuracy, speed, heading, altitude } = position.coords;
-          const location = { latitude, longitude, accuracy, speed, heading, altitude };
+          const rawLocation = { latitude, longitude, accuracy, speed, heading, altitude };
+          const now = Date.now();
+          const location = acceptAndSmoothLocation(rawLocation, now);
+
+          if (!location) {
+            return;
+          }
 
           setCurrentLocation(location);
+          setTrackingQuality(getTrackingQuality(location.accuracy));
           onLocationUpdate?.(location);
 
+          setPolylinePoints(prev => {
+            const next = [...prev, { latitude: location.latitude, longitude: location.longitude }];
+            if (next.length > MAX_POLYLINE_POINTS) {
+              return next.slice(next.length - MAX_POLYLINE_POINTS);
+            }
+
+            return next;
+          });
+
           // Fetch nearby POI periodically
-          if (userType === 'rider' && showPOI) {
+          if (userType === 'rider' && showPOI && shouldRefreshPoi(location, now)) {
+            lastPoiFetchRef.current = now;
+            lastPoiFetchLocationRef.current = location;
             fetchNearbyPOI(latitude, longitude);
+          }
+
+          if (enableAirportGuidance && userType === 'rider' && now - airportRefreshRef.current > 12000) {
+            airportRefreshRef.current = now;
+            refreshAirportGuidance(location);
           }
 
           // Emit to backend
           if (userType === 'driver') {
             socketRef.current?.emit('location-update', {
               tripId,
-              latitude,
-              longitude,
+              latitude: location.latitude,
+              longitude: location.longitude,
               accuracy,
-              speed,
+              speed: location.speed,
+              speedKph: location.speed,
               heading,
               altitude,
             });
@@ -256,14 +442,13 @@ export default function RydinexMap({
         Geolocation.clearWatch(locationWatchRef.current);
       }
     };
-  }, [tripId, userType, onLocationUpdate]);
+  }, [acceptAndSmoothLocation, enableAirportGuidance, onLocationUpdate, refreshAirportGuidance, shouldRefreshPoi, showPOI, tripId, userType]);
 
   // Fetch nearby POI
   const fetchNearbyPOI = async (latitude: number, longitude: number) => {
     if (!showPOI) return;
 
     try {
-      const token = await AsyncStorage.getItem('authToken');
       const category = poiCategory !== 'all' ? poiCategory : '';
       const query = new URLSearchParams({
         latitude: latitude.toString(),
@@ -275,11 +460,7 @@ export default function RydinexMap({
 
       const response = await fetch(
         `${backendUrl}/api/rydinex-poi/nearby?${query}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
+        {}
       );
 
       if (response.ok) {
@@ -359,20 +540,6 @@ export default function RydinexMap({
 
           {/* Nearby POI markers */}
           {showPOI && userType === 'rider' && nearbyPOI.map((poi, idx) => {
-            const categoryEmojis: any = {
-              restaurant: '🍽️',
-              gas_station: '⛽',
-              hospital: '🏥',
-              hotel: '🏨',
-              pharmacy: '💊',
-              atm: '🏧',
-              parking: '🅿️',
-              car_wash: '🚗',
-              charging_station: '🔌',
-              emergency: '🚨',
-              cafe: '☕',
-            };
-
             return (
               <Marker
                 key={idx}
@@ -390,6 +557,30 @@ export default function RydinexMap({
       )}
 
       {/* Map Type Switcher */}
+      {enableAirportGuidance && userType === 'rider' && (
+        <View style={styles.airportGuidanceCard}>
+          <Text style={styles.airportGuidanceTitle}>Airport Pickup Guidance</Text>
+          <Text style={styles.airportGuidanceMeta}>Category: {rideCategory === 'black_suv' ? 'Black SUV' : 'Black Car'}</Text>
+
+          {airportGuidance?.isAirportPickup ? (
+            <>
+              <Text style={styles.airportGuidanceMeta}>
+                {airportGuidance.airport?.code || 'Airport'} {airportGuidance.terminal ? `- ${airportGuidance.terminal}` : ''}
+              </Text>
+              <Text style={styles.airportGuidanceMeta}>Pickup Zone: {airportGuidance.pickupZone?.name || '-'}</Text>
+              <Text style={styles.airportGuidanceMeta}>Lane: {airportGuidance.pickupLane?.name || '-'}</Text>
+              {Array.isArray(airportGuidance.instructions) && airportGuidance.instructions.length > 0 ? (
+                <Text style={styles.airportGuidanceHint}>Tip: {airportGuidance.instructions[0]}</Text>
+              ) : null}
+            </>
+          ) : (
+            <Text style={styles.airportGuidanceHint}>No airport-specific pickup restrictions at your current location.</Text>
+          )}
+
+          {airportGuidanceError ? <Text style={styles.airportGuidanceError}>{airportGuidanceError}</Text> : null}
+        </View>
+      )}
+
       <View style={styles.mapTypeContainer}>
         {(['standard', 'satellite', 'hybrid'] as const).map(type => (
           <Text
@@ -421,12 +612,7 @@ export default function RydinexMap({
                 ]}
                 onPress={() => setPoiCategory(category === poiCategory ? 'all' : category)}
               >
-                {{
-                  restaurant: '🍽️',
-                  gas_station: '⛽',
-                  hotel: '🏨',
-                  pharmacy: '💊',
-                }[category as any]}
+                {POI_CATEGORY_ICONS[category] || '📍'}
               </Text>
             ))}
           </View>
@@ -455,8 +641,9 @@ export default function RydinexMap({
       {/* Current speed display for driver */}
       {userType === 'driver' && currentLocation && (
         <View style={styles.speedContainer}>
-          <Text style={styles.speedValue}>{(currentLocation.speed || 0).toFixed(0)}</Text>
+          <Text style={styles.speedValue}>{Math.max(0, currentLocation.speed || 0).toFixed(0)}</Text>
           <Text style={styles.speedUnit}>km/h</Text>
+          <Text style={styles.trackingQualityText}>GPS {trackingQuality}</Text>
         </View>
       )}
     </View>
@@ -485,6 +672,43 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     elevation: 4,
+  },
+  airportGuidanceCard: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 76,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  airportGuidanceTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 3,
+  },
+  airportGuidanceMeta: {
+    fontSize: 12,
+    color: '#374151',
+    marginBottom: 2,
+  },
+  airportGuidanceHint: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#1f2937',
+    fontWeight: '600',
+  },
+  airportGuidanceError: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#b91c1c',
   },
   mapTypeButton: {
     paddingVertical: 10,
@@ -601,5 +825,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'white',
     marginTop: 2,
+  },
+  trackingQualityText: {
+    marginTop: 4,
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    textTransform: 'uppercase',
   },
 });

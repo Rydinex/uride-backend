@@ -37,7 +37,11 @@ export type NetworkOverview = {
   };
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
+const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE =
+  process.env.INTERNAL_API_BASE_URL ||
+  (PUBLIC_API_BASE && /^https?:\/\//.test(PUBLIC_API_BASE) ? PUBLIC_API_BASE : undefined) ||
+  "http://10.0.0.70:4000/api";
 
 export async function fetchNetworkOverview(): Promise<NetworkOverview | null> {
   try {

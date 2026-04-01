@@ -92,8 +92,8 @@ android {
         applicationId "com.rydinex.rider"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.1.2"
+        versionCode 12
+        versionName "1.1.10"
     }
     signingConfigs {
         debug {
@@ -121,7 +121,7 @@ android {
             }
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }

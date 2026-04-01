@@ -186,7 +186,7 @@ type MapMarker = {
   label: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "/backend-api";
 const TOKEN_STORAGE_KEY = "rydinex_admin_token";
 
 const defaultPricingFormState: PricingFormState = {
@@ -793,21 +793,21 @@ export default function Home() {
 
   if (!token || !admin) {
     return (
-      <main className="min-h-screen bg-gray-50 p-6 md:p-10">
-        <div className="mx-auto max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <main className="min-h-screen bg-[#131314] p-6 md:p-10 text-[#e5e2e3]">
+        <div className="mx-auto max-w-md rounded-xl border border-[#424654] bg-[#1f1f20] p-6 shadow-sm">
           <h1 className="text-2xl font-semibold">Rydinex Admin Login</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-[#c2c6d7]">
             Authenticate to access driver approvals, trip monitoring, surge controls, pricing controls, and compliance reports.
           </p>
 
-          {error ? <p className="mt-4 rounded-md bg-red-100 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+          {error ? <p className="mt-4 rounded-md bg-[#492525] px-3 py-2 text-sm text-[#ffb4ab]">{error}</p> : null}
 
           {restoringSession ? (
-            <p className="mt-4 text-sm text-gray-600">Restoring your admin session...</p>
+            <p className="mt-4 text-sm text-[#c2c6d7]">Restoring your admin session...</p>
           ) : (
             <form onSubmit={handleLogin} className="mt-6 space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="email">
+                <label className="mb-1 block text-sm font-medium text-[#c2c6d7]" htmlFor="email">
                   Email
                 </label>
                 <input
@@ -816,12 +816,12 @@ export default function Home() {
                   required
                   value={email}
                   onChange={event => setEmail(event.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="password">
+                <label className="mb-1 block text-sm font-medium text-[#c2c6d7]" htmlFor="password">
                   Password
                 </label>
                 <input
@@ -830,14 +830,14 @@ export default function Home() {
                   required
                   value={password}
                   onChange={event => setPassword(event.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={authLoading}
-                className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-md bg-[#276ef1] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {authLoading ? "Signing in..." : "Sign in"}
               </button>
@@ -849,42 +849,42 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6 md:p-8">
+    <main className="min-h-screen bg-[#131314] p-6 md:p-8 text-[#e5e2e3]">
       <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-semibold">Rydinex Admin Dashboard</h1>
-            <p className="text-sm text-gray-600">Driver approvals, trip monitoring map, surge and pricing controls, compliance reporting.</p>
+            <p className="text-sm text-[#c2c6d7]">Driver approvals, trip monitoring map, surge and pricing controls, compliance reporting.</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <p className="hidden text-sm text-gray-600 md:block">{admin.email}</p>
+            <p className="hidden text-sm text-[#c2c6d7] md:block">{admin.email}</p>
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium"
+              className="rounded-md border border-[#424654] bg-[#1f1f20] px-3 py-2 text-sm font-medium"
             >
               {loading ? "Refreshing..." : "Refresh"}
             </button>
-            <button onClick={handleLogout} className="rounded-md bg-black px-3 py-2 text-sm font-medium text-white">
+            <button onClick={handleLogout} className="rounded-md bg-[#276ef1] px-3 py-2 text-sm font-medium text-white">
               Logout
             </button>
           </div>
         </header>
 
-        {error ? <p className="rounded-md bg-red-100 px-4 py-3 text-sm text-red-700">{error}</p> : null}
-        {success ? <p className="rounded-md bg-green-100 px-4 py-3 text-sm text-green-700">{success}</p> : null}
+        {error ? <p className="rounded-md bg-[#492525] px-4 py-3 text-sm text-[#ffb4ab]">{error}</p> : null}
+        {success ? <p className="rounded-md bg-[#163828] px-4 py-3 text-sm text-[#97f0ba]">{success}</p> : null}
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-lg border border-gray-200 bg-white p-5">
+          <article className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Driver Approval Panel</h2>
-              <span className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">Pending: {drivers.length}</span>
+              <span className="rounded bg-[#2a2a2b] px-2 py-1 text-xs font-medium text-[#c2c6d7]">Pending: {drivers.length}</span>
             </div>
 
             <div className="max-h-[420px] space-y-3 overflow-auto pr-1">
               {drivers.length === 0 ? (
-                <p className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-500">No pending drivers found.</p>
+                <p className="rounded border border-dashed border-[#424654] p-4 text-sm text-[#aab0c2]">No pending drivers found.</p>
               ) : (
                 drivers.map(driver => {
                   const vehicleSummary =
@@ -895,17 +895,17 @@ export default function Home() {
                   const docsSubmitted = Object.values(driver.docs || {}).filter(Boolean).length;
 
                   return (
-                    <div key={driver._id} className="rounded-md border border-gray-200 p-3">
+                    <div key={driver._id} className="rounded-md border border-[#424654] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="font-medium text-gray-900">{driver.name || "Unknown driver"}</p>
-                          <p className="text-xs text-gray-600">{driver.email || "No email"}</p>
-                          <p className="text-xs text-gray-600">{driver.phone || "No phone"}</p>
+                          <p className="font-medium text-[#e5e2e3]">{driver.name || "Unknown driver"}</p>
+                          <p className="text-xs text-[#c2c6d7]">{driver.email || "No email"}</p>
+                          <p className="text-xs text-[#c2c6d7]">{driver.phone || "No phone"}</p>
                         </div>
-                        <span className="rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">{toTitleCase(driver.status || "pending")}</span>
+                        <span className="rounded bg-[#3d2f1b] px-2 py-1 text-xs font-medium text-[#ffcf8f]">{toTitleCase(driver.status || "pending")}</span>
                       </div>
 
-                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-[#c2c6d7]">
                         <p>Vehicle: {vehicleSummary}</p>
                         <p>Plate: {driver.vehicle?.plateNumber || "N/A"}</p>
                         <p>Docs submitted: {docsSubmitted}</p>
@@ -935,14 +935,14 @@ export default function Home() {
             </div>
           </article>
 
-          <article className="rounded-lg border border-gray-200 bg-white p-5">
+          <article className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
             <h2 className="text-lg font-semibold">Trip Monitoring Map</h2>
-            <p className="mt-1 text-sm text-gray-600">Active trips with pickup, dropoff, and live driver positions.</p>
+            <p className="mt-1 text-sm text-[#c2c6d7]">Active trips with pickup, dropoff, and live driver positions.</p>
 
             <div className="mt-4">
-              <div className="relative h-72 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+              <div className="relative h-72 overflow-hidden rounded-md border border-[#424654] bg-[#131314]">
                 {mapMarkers.length === 0 ? (
-                  <div className="flex h-full items-center justify-center text-sm text-gray-500">No active trip coordinates available.</div>
+                  <div className="flex h-full items-center justify-center text-sm text-[#aab0c2]">No active trip coordinates available.</div>
                 ) : (
                   <>
                     {mapMarkers.map(marker => {
@@ -970,7 +970,7 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-700">
+              <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#c2c6d7]">
                 <span className="flex items-center gap-1">
                   <span className="inline-block h-3 w-3 rounded-full bg-blue-600" /> Pickup
                 </span>
@@ -983,9 +983,9 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-md border border-gray-200">
+            <div className="mt-4 overflow-x-auto rounded-md border border-[#424654]">
               <table className="min-w-full text-left text-xs">
-                <thead className="bg-gray-50">
+                <thead className="bg-[#131314]">
                   <tr>
                     <th className="px-3 py-2 font-semibold">Trip</th>
                     <th className="px-3 py-2 font-semibold">Status</th>
@@ -997,7 +997,7 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {monitorTrips.map(trip => (
-                    <tr key={trip.tripId} className="border-t border-gray-100">
+                    <tr key={trip.tripId} className="border-t border-[#424654]">
                       <td className="px-3 py-2">{shortId(trip.tripId)}</td>
                       <td className="px-3 py-2">{toTitleCase(trip.status || "unknown")}</td>
                       <td className="px-3 py-2">{trip.rider?.name || "N/A"}</td>
@@ -1012,78 +1012,78 @@ export default function Home() {
               </table>
 
               {monitorTrips.length === 0 ? (
-                <p className="px-3 py-4 text-center text-sm text-gray-500">No active trips to monitor.</p>
+                <p className="px-3 py-4 text-center text-sm text-[#aab0c2]">No active trips to monitor.</p>
               ) : null}
             </div>
           </article>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-lg border border-gray-200 bg-white p-5">
+          <article className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
             <h2 className="text-lg font-semibold">Pricing Control Panel</h2>
             <form onSubmit={handleSavePricing} className="mt-4 grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Base Fare
                 <input
                   type="number"
                   step="0.01"
                   value={pricingForm.baseFare}
                   onChange={event => handlePricingFieldChange("baseFare", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Per Mile Rate
                 <input
                   type="number"
                   step="0.01"
                   value={pricingForm.perMileRate}
                   onChange={event => handlePricingFieldChange("perMileRate", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Per Minute Rate
                 <input
                   type="number"
                   step="0.01"
                   value={pricingForm.perMinuteRate}
                   onChange={event => handlePricingFieldChange("perMinuteRate", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Average Speed (MPH)
                 <input
                   type="number"
                   step="0.1"
                   value={pricingForm.averageSpeedMph}
                   onChange={event => handlePricingFieldChange("averageSpeedMph", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Currency
                 <input
                   type="text"
                   value={pricingForm.currency}
                   onChange={event => handlePricingFieldChange("currency", event.target.value.toUpperCase())}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Platform Commission Rate
                 <input
                   type="number"
                   step="0.01"
                   value={pricingForm.platformCommissionRate}
                   onChange={event => handlePricingFieldChange("platformCommissionRate", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
@@ -1091,7 +1091,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={savingPricing}
-                  className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-md bg-[#276ef1] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {savingPricing ? "Saving..." : "Save Pricing"}
                 </button>
@@ -1099,39 +1099,39 @@ export default function Home() {
             </form>
           </article>
 
-          <article className="rounded-lg border border-gray-200 bg-white p-5">
+          <article className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
             <h2 className="text-lg font-semibold">Surge Control Panel</h2>
             <form onSubmit={handleSaveSurge} className="mt-4 grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Demand Radius (KM)
                 <input
                   type="number"
                   step="0.1"
                   value={surgeForm.demandRadiusKm}
                   onChange={event => handleSurgeFieldChange("demandRadiusKm", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Sensitivity
                 <input
                   type="number"
                   step="0.01"
                   value={surgeForm.sensitivity}
                   onChange={event => handleSurgeFieldChange("sensitivity", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
-              <label className="text-sm text-gray-700">
+              <label className="text-sm text-[#c2c6d7]">
                 Max Multiplier
                 <input
                   type="number"
                   step="0.1"
                   value={surgeForm.maxMultiplier}
                   onChange={event => handleSurgeFieldChange("maxMultiplier", event.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-[#424654] bg-[#2a2a2b] px-3 py-2 text-sm text-[#e5e2e3]"
                 />
               </label>
 
@@ -1139,7 +1139,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={savingSurge}
-                  className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-md bg-[#276ef1] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {savingSurge ? "Saving..." : "Save Surge"}
                 </button>
@@ -1148,78 +1148,78 @@ export default function Home() {
           </article>
         </section>
 
-        <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <section className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
           <h2 className="text-lg font-semibold">Compliance Reports</h2>
           {complianceReport ? (
             <>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-[#c2c6d7]">
                 Window: {formatDateTime(complianceReport.window.from)} to {formatDateTime(complianceReport.window.to)}
               </p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Total Trips</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Total Trips</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.trips.totalTrips}</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Completion Rate</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Completion Rate</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.trips.completionRate.toFixed(2)}%</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Cancellation Rate</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Cancellation Rate</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.trips.cancellationRate.toFixed(2)}%</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Pending Driver Approvals</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Pending Driver Approvals</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.operations.pendingDriverApprovals}</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Active Drivers</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Active Drivers</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.operations.activeDrivers}</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Open Complaints</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Open Complaints</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.operations.openComplaints || 0}</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Open Safety Incidents</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Open Safety Incidents</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.operations.openSafetyIncidents || 0}</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Critical Incidents</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Critical Incidents</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.operations.criticalSafetyIncidents || 0}</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Docs Expiring/Expired (30d)</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Docs Expiring/Expired (30d)</p>
                   <p className="mt-1 text-lg font-semibold">{complianceReport.operations.expiringOrExpiredDriverDocuments || 0}</p>
                 </div>
-                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                  <p className="text-xs text-gray-600">Platform Commission</p>
+                <div className="rounded-md border border-[#424654] bg-[#131314] p-3">
+                  <p className="text-xs text-[#c2c6d7]">Platform Commission</p>
                   <p className="mt-1 text-lg font-semibold">
                     {formatCurrency(complianceReport.finance.totalPlatformCommission, currentCurrency)}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 overflow-x-auto rounded-md border border-gray-200">
+              <div className="mt-4 overflow-x-auto rounded-md border border-[#424654]">
                 <table className="min-w-full text-left text-sm">
                   <tbody>
-                    <tr className="border-b border-gray-100">
-                      <th className="px-3 py-2 font-medium text-gray-600">Completed Trips</th>
+                    <tr className="border-b border-[#424654]">
+                      <th className="px-3 py-2 font-medium text-[#c2c6d7]">Completed Trips</th>
                       <td className="px-3 py-2">{complianceReport.trips.completedTrips}</td>
-                      <th className="px-3 py-2 font-medium text-gray-600">Cancelled Trips</th>
+                      <th className="px-3 py-2 font-medium text-[#c2c6d7]">Cancelled Trips</th>
                       <td className="px-3 py-2">{complianceReport.trips.cancelledTrips}</td>
                     </tr>
-                    <tr className="border-b border-gray-100">
-                      <th className="px-3 py-2 font-medium text-gray-600">Active Trips</th>
+                    <tr className="border-b border-[#424654]">
+                      <th className="px-3 py-2 font-medium text-[#c2c6d7]">Active Trips</th>
                       <td className="px-3 py-2">{complianceReport.trips.activeTrips}</td>
-                      <th className="px-3 py-2 font-medium text-gray-600">Completed Without Receipt</th>
+                      <th className="px-3 py-2 font-medium text-[#c2c6d7]">Completed Without Receipt</th>
                       <td className="px-3 py-2">{complianceReport.trips.completedWithoutReceipt}</td>
                     </tr>
                     <tr>
-                      <th className="px-3 py-2 font-medium text-gray-600">Avg Duration</th>
+                      <th className="px-3 py-2 font-medium text-[#c2c6d7]">Avg Duration</th>
                       <td className="px-3 py-2">{complianceReport.averages.durationMinutes.toFixed(2)} min</td>
-                      <th className="px-3 py-2 font-medium text-gray-600">Avg Distance / Fare</th>
+                      <th className="px-3 py-2 font-medium text-[#c2c6d7]">Avg Distance / Fare</th>
                       <td className="px-3 py-2">
                         {complianceReport.averages.distanceMiles.toFixed(2)} mi / {formatCurrency(complianceReport.averages.fare, currentCurrency)}
                       </td>
@@ -1229,29 +1229,29 @@ export default function Home() {
               </div>
             </>
           ) : (
-            <p className="mt-3 text-sm text-gray-500">No compliance report data available.</p>
+            <p className="mt-3 text-sm text-[#aab0c2]">No compliance report data available.</p>
           )}
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-lg border border-gray-200 bg-white p-5">
+          <article className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Incident Reports</h2>
-              <span className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">{incidentReports.length} recent</span>
+              <span className="rounded bg-[#2a2a2b] px-2 py-1 text-xs font-medium text-[#c2c6d7]">{incidentReports.length} recent</span>
             </div>
 
             <div className="max-h-[360px] space-y-3 overflow-auto pr-1">
               {incidentReports.length === 0 ? (
-                <p className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-500">No incident reports found.</p>
+                <p className="rounded border border-dashed border-[#424654] p-4 text-sm text-[#aab0c2]">No incident reports found.</p>
               ) : (
                 incidentReports.map(incident => (
-                  <div key={incident._id} className="rounded-md border border-gray-200 p-3">
+                  <div key={incident._id} className="rounded-md border border-[#424654] p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-gray-900">{incident.title}</p>
-                      <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">{toTitleCase(incident.status)}</span>
+                      <p className="text-sm font-medium text-[#e5e2e3]">{incident.title}</p>
+                      <span className="rounded bg-[#2a2a2b] px-2 py-1 text-xs text-[#c2c6d7]">{toTitleCase(incident.status)}</span>
                     </div>
-                    <p className="mt-1 text-xs text-gray-600">{incident.description}</p>
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <p className="mt-1 text-xs text-[#c2c6d7]">{incident.description}</p>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-[#c2c6d7]">
                       <p>Type: {toTitleCase(incident.incidentType)}</p>
                       <p>Severity: {toTitleCase(incident.severity)}</p>
                       <p>Driver: {incident.driver?.name || "N/A"}</p>
@@ -1264,7 +1264,7 @@ export default function Home() {
                       <button
                         onClick={() => handleIncidentStatusUpdate(incident._id, "investigating")}
                         disabled={incidentUpdatingId === incident._id || incident.status === "investigating"}
-                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs"
+                        className="rounded-md border border-[#424654] bg-[#1f1f20] px-2 py-1 text-xs"
                       >
                         Investigating
                       </button>
@@ -1278,7 +1278,7 @@ export default function Home() {
                       <button
                         onClick={() => handleIncidentStatusUpdate(incident._id, "dismissed")}
                         disabled={incidentUpdatingId === incident._id || incident.status === "dismissed"}
-                        className="rounded-md bg-gray-700 px-2 py-1 text-xs text-white"
+                        className="rounded-md bg-[#353436] px-2 py-1 text-xs text-white"
                       >
                         Dismiss
                       </button>
@@ -1289,39 +1289,39 @@ export default function Home() {
             </div>
           </article>
 
-          <article className="rounded-lg border border-gray-200 bg-white p-5">
+          <article className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Document Expiration Alerts</h2>
-              <span className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">{documentAlerts.length} alerts</span>
+              <span className="rounded bg-[#2a2a2b] px-2 py-1 text-xs font-medium text-[#c2c6d7]">{documentAlerts.length} alerts</span>
             </div>
 
             <div className="max-h-[360px] space-y-3 overflow-auto pr-1">
               {documentAlerts.length === 0 ? (
-                <p className="rounded border border-dashed border-gray-300 p-4 text-sm text-gray-500">No upcoming document expiration alerts.</p>
+                <p className="rounded border border-dashed border-[#424654] p-4 text-sm text-[#aab0c2]">No upcoming document expiration alerts.</p>
               ) : (
                 documentAlerts.map((alert, index) => (
-                  <div key={`${alert.driverId}-${alert.docType}-${index}`} className="rounded-md border border-gray-200 p-3">
+                  <div key={`${alert.driverId}-${alert.docType}-${index}`} className="rounded-md border border-[#424654] p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-gray-900">{alert.driverName} · {alert.docType}</p>
+                      <p className="text-sm font-medium text-[#e5e2e3]">{alert.driverName} · {alert.docType}</p>
                       <span
                         className={`rounded px-2 py-1 text-xs ${
                           alert.urgency === "critical"
-                            ? "bg-red-100 text-red-700"
+                            ? "bg-[#492525] text-[#ffb4ab]"
                             : alert.urgency === "high"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-blue-100 text-blue-700"
+                            ? "bg-[#3d2f1b] text-[#ffcf8f]"
+                            : "bg-[#31477c] text-[#dbe5ff]"
                         }`}
                       >
                         {toTitleCase(alert.urgency)}
                       </span>
                     </div>
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-[#c2c6d7]">
                       <p>Status: {toTitleCase(alert.driverStatus)}</p>
                       <p>Doc Status: {toTitleCase(alert.docStatus)}</p>
                       <p>Expires: {formatDateTime(alert.expiresAt)}</p>
                       <p>{alert.isExpired ? "Expired" : `${alert.daysUntilExpiration} days left`}</p>
                     </div>
-                    <p className="mt-2 text-xs text-gray-600">{alert.driverEmail} · {alert.driverPhone}</p>
+                    <p className="mt-2 text-xs text-[#c2c6d7]">{alert.driverEmail} · {alert.driverPhone}</p>
                   </div>
                 ))
               )}
@@ -1329,9 +1329,9 @@ export default function Home() {
           </article>
         </section>
 
-        <section className="rounded-lg border border-gray-200 bg-white p-5">
+        <section className="rounded-lg border border-[#424654] bg-[#1f1f20] p-5">
           <h2 className="text-lg font-semibold">Data Export</h2>
-          <p className="mt-1 text-sm text-gray-600">Download compliance datasets as JSON or CSV.</p>
+          <p className="mt-1 text-sm text-[#c2c6d7]">Download compliance datasets as JSON or CSV.</p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {[
               { key: "complaints", label: "Complaints" },
@@ -1340,20 +1340,20 @@ export default function Home() {
               { key: "driver_logs", label: "Driver Logs" },
               { key: "document_alerts", label: "Document Alerts" },
             ].map(dataset => (
-              <div key={dataset.key} className="rounded-md border border-gray-200 p-3">
-                <p className="text-sm font-medium text-gray-900">{dataset.label}</p>
+              <div key={dataset.key} className="rounded-md border border-[#424654] p-3">
+                <p className="text-sm font-medium text-[#e5e2e3]">{dataset.label}</p>
                 <div className="mt-2 flex gap-2">
                   <button
                     onClick={() => handleExport(dataset.key, "json")}
                     disabled={Boolean(exportingDataset)}
-                    className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs"
+                    className="rounded-md border border-[#424654] bg-[#1f1f20] px-2 py-1 text-xs"
                   >
                     {exportingDataset === `${dataset.key}:json` ? "Exporting..." : "JSON"}
                   </button>
                   <button
                     onClick={() => handleExport(dataset.key, "csv")}
                     disabled={Boolean(exportingDataset)}
-                    className="rounded-md bg-black px-2 py-1 text-xs text-white"
+                    className="rounded-md bg-[#276ef1] px-2 py-1 text-xs text-white"
                   >
                     {exportingDataset === `${dataset.key}:csv` ? "Exporting..." : "CSV"}
                   </button>
@@ -1364,10 +1364,10 @@ export default function Home() {
 
           {complianceSummary ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-              <p className="rounded bg-gray-50 px-3 py-2">Complaints: {complianceSummary.complaints.totalComplaints}</p>
-              <p className="rounded bg-gray-50 px-3 py-2">Open Incidents: {complianceSummary.incidents.openIncidents}</p>
-              <p className="rounded bg-gray-50 px-3 py-2">Trip Logs: {complianceSummary.logs.tripLogCount}</p>
-              <p className="rounded bg-gray-50 px-3 py-2">Driver Logs: {complianceSummary.logs.driverLogCount}</p>
+              <p className="rounded bg-[#131314] px-3 py-2">Complaints: {complianceSummary.complaints.totalComplaints}</p>
+              <p className="rounded bg-[#131314] px-3 py-2">Open Incidents: {complianceSummary.incidents.openIncidents}</p>
+              <p className="rounded bg-[#131314] px-3 py-2">Trip Logs: {complianceSummary.logs.tripLogCount}</p>
+              <p className="rounded bg-[#131314] px-3 py-2">Driver Logs: {complianceSummary.logs.driverLogCount}</p>
             </div>
           ) : null}
         </section>
@@ -1375,3 +1375,6 @@ export default function Home() {
     </main>
   );
 }
+
+
+

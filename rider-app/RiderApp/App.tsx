@@ -1,6 +1,7 @@
 import 'react-native-gesture-handler';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
@@ -8,7 +9,6 @@ import {
   Alert,
   Button,
   Image,
-  NativeModules,
   PermissionsAndroid,
   Platform,
   Pressable,
@@ -23,6 +23,7 @@ import {
 import Geolocation from '@react-native-community/geolocation';
 import MapView, { Marker, Polyline, Region } from 'react-native-maps';
 import { io, Socket } from 'socket.io-client';
+import { API_BASE_URL, SOCKET_URL } from './src/config/network';
 
 type RootStackParamList = {
   Registration: undefined;
@@ -60,7 +61,18 @@ type TripPoint = {
   address?: string;
 };
 
-type RideCategory = 'rydinex_regular' | 'rydinex_comfort' | 'rydinex_xl' | 'rydinex_green';
+type RideCategory =
+  | 'black_car'
+  | 'black_suv'
+  | 'rydinex_regular'
+  | 'rydinex_comfort'
+  | 'rydinex_xl'
+  | 'rydinex_green'
+  | 'comfort'
+  | 'xl'
+  | 'green';
+
+type RequestRideCategory = 'black_car' | 'black_suv';
 
 type RiderTrip = {
   _id: string;
@@ -154,6 +166,7 @@ type AirportPickupInstructions = {
   operationType?: 'airport' | 'event' | 'city';
   isAirportPickup: boolean;
   isEventPickup?: boolean;
+  terminal?: number | null;
   airport: {
     code: 'ORD' | 'MDW';
     name: string;
@@ -183,8 +196,10 @@ type AirportPickupInstructions = {
     code?: string;
     name?: string;
     laneType?: 'regular' | 'black_car';
+    message?: string;
   } | null;
   instructions: string[];
+  message?: string;
 };
 
 type TripTrackingResponse = {
@@ -292,29 +307,8 @@ type OnboardingContext = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-// Set this for physical-device testing (example: 192.168.1.40).
-const MANUAL_BACKEND_HOST = '10.0.0.70';
-const resolveDevBackendHost = () => {
-  const manualHost = MANUAL_BACKEND_HOST.trim();
-  if (manualHost) {
-    return manualHost;
-  }
-
-  // On physical devices, Metro scriptURL usually contains the host machine LAN IP.
-  const scriptURL = (NativeModules as { SourceCode?: { scriptURL?: string } }).SourceCode?.scriptURL || '';
-  const scriptHostMatch = scriptURL.match(/^https?:\/\/([^/:]+)/i);
-  const scriptHost = scriptHostMatch?.[1]?.trim();
-
-  if (scriptHost && scriptHost !== 'localhost' && scriptHost !== '127.0.0.1') {
-    return scriptHost;
-  }
-
-  return Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-};
-
-const BACKEND_HOST = MANUAL_BACKEND_HOST;
-const API_BASE_URL = `http://${BACKEND_HOST}:4000/api`;
-const SOCKET_URL = `http://${BACKEND_HOST}:4000`;
+const RIDER_SESSION_KEY = 'rydinex_rider_id';
+const RIDER_LOGO_SOURCE = require('./src/assets/Rydinex.png');
 
 const DEFAULT_REGION: Region = {
   latitude: 6.5244,
@@ -324,17 +318,19 @@ const DEFAULT_REGION: Region = {
 };
 
 const PREMIUM_COLORS = {
-  background: '#f4f6fb',
-  card: '#ffffff',
-  textPrimary: '#102a43',
-  textSecondary: '#4c6272',
-  divider: '#d9e2ec',
-  accent: '#1f6feb',
-  accentSoft: '#e7f1ff',
-  successSoft: '#ecfdf3',
-  warningSoft: '#fff8e8',
-  danger: '#dc2626',
-  shadow: '#6b7c93',
+  background: '#131314',
+  card: '#1f1f20',
+  cardHigh: '#2a2a2b',
+  cardHighest: '#353436',
+  textPrimary: '#e5e2e3',
+  textSecondary: '#c2c6d7',
+  divider: '#424654',
+  accent: '#276ef1',
+  accentSoft: '#31477c',
+  successSoft: '#163828',
+  warningSoft: '#3d2f1b',
+  danger: '#ffb4ab',
+  shadow: '#000000',
 };
 
 const TIP_PERCENT_OPTIONS = [10, 15, 20, 25];
@@ -344,27 +340,47 @@ const RIDE_CATEGORY_LABELS: Record<RideCategory, string> = {
   rydinex_comfort: 'Rydinex Comfort',
   rydinex_xl: 'Rydinex XL',
   rydinex_green: 'Rydinex Green',
+  black_car: 'Black Car',
+  black_suv: 'Black SUV',
+  comfort: 'Comfort',
+  xl: 'XL',
+  green: 'Green',
 };
 
 const RIDE_CATEGORY_OPTIONS: Array<{
   value: RideCategory;
   label: string;
+  requestCategory: RequestRideCategory;
 }> = [
   {
     value: 'rydinex_regular',
     label: 'Rydinex Regular',
+    requestCategory: 'black_car',
   },
   {
     value: 'rydinex_comfort',
     label: 'Rydinex Comfort',
+    requestCategory: 'black_car',
+  },
+  {
+    value: 'black_car',
+    label: 'Black Car',
+    requestCategory: 'black_car',
   },
   {
     value: 'rydinex_xl',
     label: 'Rydinex XL',
+    requestCategory: 'black_suv',
+  },
+  {
+    value: 'black_suv',
+    label: 'Black SUV',
+    requestCategory: 'black_suv',
   },
   {
     value: 'rydinex_green',
     label: 'Rydinex Green',
+    requestCategory: 'black_car',
   },
 ];
 
@@ -377,7 +393,7 @@ function formatRideCategoryLabel(category: RideCategory | string | null | undefi
     return RIDE_CATEGORY_LABELS[normalized as RideCategory];
   }
 
-  return normalized ? normalized.replace(/_/g, ' ').toUpperCase() : 'Rydinex Regular';
+  return normalized ? normalized.replace(/_/g, ' ').toUpperCase() : 'Black Car';
 }
 
 function haversineDistanceKm(pointA: TripPoint, pointB: TripPoint) {
@@ -464,21 +480,70 @@ function buildVehiclePhotoUrl(vehicle: DriverVehicle | null | undefined) {
 }
 
 function App() {
-  const [riderId, setRiderId] = useState('');
+  const [riderId, setRiderIdState] = useState('');
+  const [isSessionReady, setIsSessionReady] = useState(false);
+  const [initialRouteName, setInitialRouteName] = useState<keyof RootStackParamList>('Registration');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const hydrateSession = async () => {
+      try {
+        const storedRiderId = (await AsyncStorage.getItem(RIDER_SESSION_KEY))?.trim();
+        if (!isMounted || !storedRiderId) {
+          return;
+        }
+
+        setRiderIdState(storedRiderId);
+        setInitialRouteName('Home');
+      } finally {
+        if (isMounted) {
+          setIsSessionReady(true);
+        }
+      }
+    };
+
+    hydrateSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const setRiderId = useCallback((value: string) => {
+    const normalizedRiderId = (value || '').trim();
+    setRiderIdState(normalizedRiderId);
+
+    if (normalizedRiderId) {
+      AsyncStorage.setItem(RIDER_SESSION_KEY, normalizedRiderId).catch(() => undefined);
+      return;
+    }
+
+    AsyncStorage.removeItem(RIDER_SESSION_KEY).catch(() => undefined);
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       riderId,
       setRiderId,
     }),
-    [riderId]
+    [riderId, setRiderId]
   );
+
+  if (!isSessionReady) {
+    return (
+      <SafeAreaView style={styles.sessionLoaderContainer}>
+        <ActivityIndicator size="large" color={PREMIUM_COLORS.accent} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.appContainer}>
       <StatusBar barStyle="dark-content" />
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Registration"
+          initialRouteName={initialRouteName}
           screenOptions={{
             headerStyle: {
               backgroundColor: '#ffffff',
@@ -926,29 +991,60 @@ function HomeScreen({ navigation, context }: HomeProps) {
     Alert.alert('Coming soon', `${action} will be available in the next rider release.`);
   }, [navigation]);
 
+  const quickActions = homeData?.quickActions || ['Book Ride', 'Favorites', 'Support'];
+  const walletLabel = homeData?.defaultPaymentMethod
+    ? `${homeData.defaultPaymentMethod.brand || 'Card'} ••••${homeData.defaultPaymentMethod.last4 || ''}`
+    : 'Add a default payment method';
+
   return (
     <ScrollView contentContainerStyle={styles.screenContainer}>
       {loading ? <ActivityIndicator /> : null}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.heroCard}>
-        <Text style={styles.heroEyebrow}>Premium Rider Experience</Text>
-        <Text style={styles.heroTitle}>{homeData?.greeting || 'Welcome to Rydinex'}</Text>
-        <Text style={styles.heroSubText}>Account status: {homeData?.status || 'active'} | Transparent fares | Live driver intelligence</Text>
+        <View style={styles.heroHeaderRow}>
+          <Image source={RIDER_LOGO_SOURCE} style={styles.heroLogo} resizeMode="contain" />
+          <View style={styles.heroHeaderCopy}>
+            <Text style={styles.heroEyebrow}>Digital Concierge</Text>
+            <Text style={styles.heroTitle}>{homeData?.greeting || 'Welcome to Rydinex'}</Text>
+          </View>
+          <View style={[styles.metricPill, socketConnected ? styles.metricPillOnline : styles.metricPillOffline]}>
+            <Text style={styles.metricPillText}>{socketConnected ? 'Live' : 'Syncing'}</Text>
+          </View>
+        </View>
+        <Text style={styles.heroSubText}>Ride with upfront pricing, live driver presence, and premium support built into every trip.</Text>
+        <View style={styles.homeStatsRow}>
+          <View style={styles.homeStatCard}>
+            <Text style={styles.homeStatValue}>{nearbyDrivers.length}</Text>
+            <Text style={styles.homeStatLabel}>Drivers nearby</Text>
+          </View>
+          <View style={styles.homeStatCard}>
+            <Text style={styles.homeStatValue}>{homeData?.totalPaymentMethods ?? 0}</Text>
+            <Text style={styles.homeStatLabel}>Wallet methods</Text>
+          </View>
+          <View style={styles.homeStatCard}>
+            <Text style={styles.homeStatValue}>{homeData?.status || 'active'}</Text>
+            <Text style={styles.homeStatLabel}>Account status</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Wallet Snapshot</Text>
-        <Text style={styles.cardSubText}>Payment methods: {homeData?.totalPaymentMethods ?? 0}</Text>
-        <Text style={styles.cardSubTextStrong}>
-          Default: {homeData?.defaultPaymentMethod ? `${homeData.defaultPaymentMethod.brand} ****${homeData.defaultPaymentMethod.last4}` : 'Not set'}
-        </Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.cardTitle}>Wallet Snapshot</Text>
+          <View style={styles.inlineInfoChip}>
+            <Text style={styles.inlineInfoChipText}>Secure</Text>
+          </View>
+        </View>
+        <Text style={styles.cardSubText}>Payment methods on file</Text>
+        <Text style={styles.cardSubTextStrong}>{walletLabel}</Text>
+        <Text style={styles.cardSubText}>Use the rider flow to add cards, business payment, or family wallet access.</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
-          {(homeData?.quickActions || ['Book Ride', 'Favorites', 'Support']).map(action => (
+          {quickActions.map(action => (
             <Pressable
               key={action}
               style={({ pressed }) => [styles.actionChip, pressed ? styles.actionChipPressed : null]}
@@ -961,7 +1057,12 @@ function HomeScreen({ navigation, context }: HomeProps) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Live Network</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.cardTitle}>Live Network</Text>
+          <Pressable style={styles.inlineActionChip} onPress={() => subscribeNearbyDrivers(true)}>
+            <Text style={styles.inlineActionChipText}>Refresh</Text>
+          </Pressable>
+        </View>
         <View style={styles.metricRow}>
           <View style={[styles.metricPill, socketConnected ? styles.metricPillOnline : styles.metricPillOffline]}>
             <Text style={styles.metricPillText}>{socketConnected ? 'Live connected' : 'Reconnecting'}</Text>
@@ -996,14 +1097,51 @@ function HomeScreen({ navigation, context }: HomeProps) {
             ))}
           </MapView>
         </View>
+
+        <View style={styles.networkList}>
+          {nearbyDrivers.slice(0, 3).map(driver => (
+            <View key={driver.driverId} style={styles.networkListItem}>
+              <Text style={styles.cardSubTextStrong}>Driver {driver.driverId.slice(-6)}</Text>
+              <Text style={styles.cardSubText}>
+                {driver.distanceKm !== null && driver.distanceKm !== undefined
+                  ? `${driver.distanceKm.toFixed(2)} km away`
+                  : 'Live in your area'}
+              </Text>
+            </View>
+          ))}
+          {nearbyDrivers.length === 0 ? <Text style={styles.cardSubText}>No nearby drivers visible yet. Keep location on and refresh the live network.</Text> : null}
+        </View>
       </View>
 
-      <View style={styles.buttonStack}>
-        <Button title="Request Ride" onPress={() => navigation.navigate('RequestRide')} />
-        <Button title="Refresh Nearby Drivers" onPress={() => subscribeNearbyDrivers(true)} />
-        <Button title="Rate Last Trip" onPress={() => loadPendingFeedbackPrompt(true)} />
-        <Button title="Support" onPress={() => navigation.navigate('Support')} />
-        <Button title="Refresh Home" onPress={loadHome} />
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Trust And Safety</Text>
+        <Text style={styles.cardSubText}>Teen pickup safeguards, service-animal support, and clear trip receipts stay visible across the rider flow.</Text>
+        <View style={styles.metricRow}>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricPillText}>Transparent fares</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricPillText}>Driver identity</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricPillText}>Priority support</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.homePrimaryActions}>
+        <Pressable style={({ pressed }) => [styles.primaryActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => navigation.navigate('RequestRide')}>
+          <Text style={styles.primaryActionButtonText}>Request Ride</Text>
+        </Pressable>
+        <Pressable style={({ pressed }) => [styles.secondaryActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => navigation.navigate('Support')}>
+          <Text style={styles.secondaryActionButtonText}>Support</Text>
+        </Pressable>
+        <Pressable style={({ pressed }) => [styles.secondaryActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => loadPendingFeedbackPrompt(true)}>
+          <Text style={styles.secondaryActionButtonText}>Rate Last Trip</Text>
+        </Pressable>
+        <Pressable style={({ pressed }) => [styles.secondaryActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={loadHome}>
+          <Text style={styles.secondaryActionButtonText}>Refresh Home</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -1014,7 +1152,7 @@ type RequestRideProps = NativeStackScreenProps<RootStackParamList, 'RequestRide'
 };
 
 function RequestRideScreen({ navigation, context }: RequestRideProps) {
-  const [rideCategory, setRideCategory] = useState<RideCategory>('rydinex_regular');
+  const [rideCategory, setRideCategory] = useState<RideCategory>('black_car');
   const [serviceDogRequested, setServiceDogRequested] = useState(false);
   const [teenPickup, setTeenPickup] = useState(false);
   const [pickupAddress, setPickupAddress] = useState('Current location pickup');
@@ -1025,6 +1163,7 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
   const [dropoffLongitude, setDropoffLongitude] = useState('3.3500');
   const [upfrontPricing, setUpfrontPricing] = useState<UpfrontPricingQuote | null>(null);
   const [airportPickupInfo, setAirportPickupInfo] = useState<AirportPickupInstructions | null>(null);
+  const [airportRestrictionMessage, setAirportRestrictionMessage] = useState('');
   const [pricingLoading, setPricingLoading] = useState(false);
   const [instructionsLoading, setInstructionsLoading] = useState(false);
   const [locationAutofillLoading, setLocationAutofillLoading] = useState(false);
@@ -1032,6 +1171,24 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
   const [favoriteLocations, setFavoriteLocations] = useState<FavoriteLocation[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [favoriteSaving, setFavoriteSaving] = useState(false);
+  const lastResolvedPickupAddressRef = useRef('');
+  const lastResolvedDropoffAddressRef = useRef('');
+
+  const requestRideCategory = useMemo<RequestRideCategory>(() => {
+    const selectedCategory = RIDE_CATEGORY_OPTIONS.find(option => option.value === rideCategory);
+    return selectedCategory?.requestCategory || 'black_car';
+  }, [rideCategory]);
+
+  const hasOrdTerminal5Restriction = useMemo(() => {
+    const inOrdTerminal5 = airportPickupInfo?.airport?.code === 'ORD' && Number(airportPickupInfo?.terminal) === 5;
+
+    if (inOrdTerminal5) {
+      return true;
+    }
+
+    const normalizedMessage = airportRestrictionMessage.toLowerCase();
+    return normalizedMessage.includes('terminal 5') && normalizedMessage.includes('cannot pick up');
+  }, [airportPickupInfo?.airport?.code, airportPickupInfo?.terminal, airportRestrictionMessage]);
 
   const loadFavoriteLocations = useCallback(async () => {
     if (!context.riderId) {
@@ -1080,18 +1237,124 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
     setDropoffLongitude(favorite.longitude.toFixed(6));
   }, []);
 
+  const geocodeAddress = useCallback(async (address: string) => {
+    const trimmedAddress = address.trim();
+    if (trimmedAddress.length < 3) {
+      return null;
+    }
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(trimmedAddress)}`,
+      {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'RydinexRiderApp/1.0 (mobile)',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json();
+    const firstResult = Array.isArray(payload) ? payload[0] : null;
+    if (!firstResult) {
+      return null;
+    }
+
+    const latitude = Number(firstResult.lat);
+    const longitude = Number(firstResult.lon);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return null;
+    }
+
+    return {
+      latitude,
+      longitude,
+    };
+  }, []);
+
+  const resolveTripPoint = useCallback(
+    async ({
+      target,
+      address,
+      latitude,
+      longitude,
+      fallbackAddress,
+    }: {
+      target: 'pickup' | 'dropoff';
+      address: string;
+      latitude: string;
+      longitude: string;
+      fallbackAddress: string;
+    }) => {
+      const trimmedAddress = address.trim();
+      const parsedLatitude = Number(latitude);
+      const parsedLongitude = Number(longitude);
+      const hasExistingCoordinates = Number.isFinite(parsedLatitude) && Number.isFinite(parsedLongitude);
+      const normalizedAddress = trimmedAddress.toLowerCase();
+      const lastResolvedRef = target === 'pickup' ? lastResolvedPickupAddressRef : lastResolvedDropoffAddressRef;
+      const needsFreshGeocode = trimmedAddress.length >= 3 && normalizedAddress !== lastResolvedRef.current;
+
+      if (needsFreshGeocode) {
+        try {
+          const resolvedCoordinates = await geocodeAddress(trimmedAddress);
+          if (resolvedCoordinates) {
+            const latString = resolvedCoordinates.latitude.toFixed(6);
+            const lngString = resolvedCoordinates.longitude.toFixed(6);
+
+            if (target === 'pickup') {
+              setPickupLatitude(latString);
+              setPickupLongitude(lngString);
+            } else {
+              setDropoffLatitude(latString);
+              setDropoffLongitude(lngString);
+            }
+
+            lastResolvedRef.current = normalizedAddress;
+            return {
+              latitude: resolvedCoordinates.latitude,
+              longitude: resolvedCoordinates.longitude,
+              address: trimmedAddress || fallbackAddress,
+            };
+          }
+        } catch {
+          // Handle below with a validation-friendly null response.
+        }
+
+        return null;
+      }
+
+      if (hasExistingCoordinates) {
+        return {
+          latitude: parsedLatitude,
+          longitude: parsedLongitude,
+          address: trimmedAddress || fallbackAddress,
+        };
+      }
+
+      return null;
+    },
+    [geocodeAddress]
+  );
+
   const saveFavoriteLocation = useCallback(async (target: 'pickup' | 'dropoff', placeType: FavoriteLocation['placeType']) => {
     if (!context.riderId) {
       Alert.alert('Missing Rider', 'Please complete rider onboarding first.');
       return;
     }
 
-    const latitude = Number(target === 'pickup' ? pickupLatitude : dropoffLatitude);
-    const longitude = Number(target === 'pickup' ? pickupLongitude : dropoffLongitude);
-    const address = target === 'pickup' ? pickupAddress : dropoffAddress;
+    const resolvedPoint = await resolveTripPoint({
+      target,
+      address: target === 'pickup' ? pickupAddress : dropoffAddress,
+      latitude: target === 'pickup' ? pickupLatitude : dropoffLatitude,
+      longitude: target === 'pickup' ? pickupLongitude : dropoffLongitude,
+      fallbackAddress: target === 'pickup' ? 'Pickup' : 'Dropoff',
+    });
 
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      Alert.alert('Invalid Coordinates', 'Set valid coordinates before saving a favorite.');
+    if (!resolvedPoint) {
+      Alert.alert('Location Required', 'Enter a valid address so we can save this favorite location.');
       return;
     }
 
@@ -1102,9 +1365,9 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           label: `${placeType === 'other' ? 'Saved' : placeType} ${target}`,
-          address: address.trim() || `${target} favorite`,
-          latitude,
-          longitude,
+          address: resolvedPoint.address.trim() || `${target} favorite`,
+          latitude: resolvedPoint.latitude,
+          longitude: resolvedPoint.longitude,
           placeType,
         }),
       });
@@ -1122,7 +1385,17 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
     } finally {
       setFavoriteSaving(false);
     }
-  }, [context.riderId, dropoffAddress, dropoffLatitude, dropoffLongitude, loadFavoriteLocations, pickupAddress, pickupLatitude, pickupLongitude]);
+  }, [
+    context.riderId,
+    dropoffAddress,
+    dropoffLatitude,
+    dropoffLongitude,
+    loadFavoriteLocations,
+    pickupAddress,
+    pickupLatitude,
+    pickupLongitude,
+    resolveTripPoint,
+  ]);
 
   const removeFavoriteLocation = useCallback(async (favoriteId: string) => {
     if (!context.riderId) {
@@ -1201,39 +1474,36 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
     }
   }, [requestLocationPermission]);
 
-  const parseTripPoints = useCallback(() => {
-    const parsedPickupLatitude = Number(pickupLatitude);
-    const parsedPickupLongitude = Number(pickupLongitude);
-    const parsedDropoffLatitude = Number(dropoffLatitude);
-    const parsedDropoffLongitude = Number(dropoffLongitude);
+  const parseTripPoints = useCallback(async () => {
+    const pickup = await resolveTripPoint({
+      target: 'pickup',
+      address: pickupAddress,
+      latitude: pickupLatitude,
+      longitude: pickupLongitude,
+      fallbackAddress: 'Pickup',
+    });
+    const dropoff = await resolveTripPoint({
+      target: 'dropoff',
+      address: dropoffAddress,
+      latitude: dropoffLatitude,
+      longitude: dropoffLongitude,
+      fallbackAddress: 'Dropoff',
+    });
 
-    if (
-      !Number.isFinite(parsedPickupLatitude) ||
-      !Number.isFinite(parsedPickupLongitude) ||
-      !Number.isFinite(parsedDropoffLatitude) ||
-      !Number.isFinite(parsedDropoffLongitude)
-    ) {
+    if (!pickup || !dropoff) {
       return null;
     }
 
     return {
-      pickup: {
-        latitude: parsedPickupLatitude,
-        longitude: parsedPickupLongitude,
-        address: pickupAddress.trim() || 'Pickup',
-      },
-      dropoff: {
-        latitude: parsedDropoffLatitude,
-        longitude: parsedDropoffLongitude,
-        address: dropoffAddress.trim() || 'Dropoff',
-      },
+      pickup,
+      dropoff,
     };
-  }, [dropoffAddress, dropoffLatitude, dropoffLongitude, pickupAddress, pickupLatitude, pickupLongitude]);
+  }, [dropoffAddress, dropoffLatitude, dropoffLongitude, pickupAddress, pickupLatitude, pickupLongitude, resolveTripPoint]);
 
   const loadUpfrontPricing = useCallback(async () => {
-    const tripPoints = parseTripPoints();
+    const tripPoints = await parseTripPoints();
     if (!tripPoints) {
-      Alert.alert('Invalid Coordinates', 'Please enter valid pickup and dropoff coordinates.');
+      Alert.alert('Location Required', 'Enter valid pickup and dropoff addresses before getting upfront fare.');
       return;
     }
 
@@ -1244,7 +1514,7 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...tripPoints,
-          rideCategory,
+          rideCategory: requestRideCategory,
           serviceDogRequested,
           teenPickup,
           teenSeatingPolicy: teenPickup ? 'back_seat_only' : 'none',
@@ -1264,14 +1534,20 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
     } finally {
       setPricingLoading(false);
     }
-  }, [parseTripPoints, rideCategory, serviceDogRequested, teenPickup]);
+  }, [parseTripPoints, requestRideCategory, serviceDogRequested, teenPickup]);
 
   const loadAirportPickupInstructions = useCallback(async () => {
-    const parsedPickupLatitude = Number(pickupLatitude);
-    const parsedPickupLongitude = Number(pickupLongitude);
+    const pickup = await resolveTripPoint({
+      target: 'pickup',
+      address: pickupAddress,
+      latitude: pickupLatitude,
+      longitude: pickupLongitude,
+      fallbackAddress: 'Pickup',
+    });
 
-    if (!Number.isFinite(parsedPickupLatitude) || !Number.isFinite(parsedPickupLongitude)) {
+    if (!pickup) {
       setAirportPickupInfo(null);
+      setAirportRestrictionMessage('');
       return;
     }
 
@@ -1279,22 +1555,50 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
       setInstructionsLoading(true);
       const response = await fetch(
         `${API_BASE_URL}/airport-queue/pickup-instructions?latitude=${encodeURIComponent(
-          String(parsedPickupLatitude)
-        )}&longitude=${encodeURIComponent(String(parsedPickupLongitude))}&rideCategory=${encodeURIComponent(rideCategory)}`
+          String(pickup.latitude)
+        )}&longitude=${encodeURIComponent(String(pickup.longitude))}&rideCategory=${encodeURIComponent(requestRideCategory)}`
       );
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.message || 'Failed to fetch airport pickup instructions.');
+        setAirportPickupInfo(
+          payload && typeof payload === 'object'
+            ? {
+                operationType: 'airport',
+                isAirportPickup: true,
+                isEventPickup: false,
+                airport:
+                  payload?.terminal || String(payload?.message || '').toLowerCase().includes('ord')
+                    ? {
+                        code: 'ORD',
+                        name: 'O Hare International',
+                      }
+                    : null,
+                terminal: Number.isFinite(Number(payload?.terminal)) ? Number(payload?.terminal) : null,
+                event: null,
+                queueGroup: 'regular',
+                requiredLot: null,
+                pickupZone: null,
+                stagingArea: null,
+                pickupLane: null,
+                instructions: [],
+                message: String(payload?.message || ''),
+              }
+            : null
+        );
+        setAirportRestrictionMessage(String(payload?.message || 'Pickup is restricted for this airport location.'));
+        return;
       }
 
       setAirportPickupInfo(payload);
+      setAirportRestrictionMessage('');
     } catch {
       setAirportPickupInfo(null);
+      setAirportRestrictionMessage('');
     } finally {
       setInstructionsLoading(false);
     }
-  }, [pickupLatitude, pickupLongitude, rideCategory]);
+  }, [pickupAddress, pickupLatitude, pickupLongitude, requestRideCategory, resolveTripPoint]);
 
   const requestTrip = useCallback(async () => {
     if (!context.riderId) {
@@ -1302,9 +1606,17 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
       return;
     }
 
-    const tripPoints = parseTripPoints();
+    if (hasOrdTerminal5Restriction) {
+      Alert.alert(
+        'ORD Terminal 5 Restriction',
+        'Standard rides cannot be picked up at ORD Terminal 5. Please move pickup to Terminal 2 or 3.'
+      );
+      return;
+    }
+
+    const tripPoints = await parseTripPoints();
     if (!tripPoints) {
-      Alert.alert('Invalid Coordinates', 'Please enter valid pickup and dropoff coordinates.');
+      Alert.alert('Location Required', 'Enter valid pickup and dropoff addresses before requesting a ride.');
       return;
     }
 
@@ -1315,7 +1627,7 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           riderId: context.riderId,
-          rideCategory,
+          rideCategory: requestRideCategory,
           serviceDogRequested,
           teenPickup,
           teenSeatingPolicy: teenPickup ? 'back_seat_only' : 'none',
@@ -1346,7 +1658,8 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
     context.riderId,
     navigation,
     parseTripPoints,
-    rideCategory,
+    hasOrdTerminal5Restriction,
+    requestRideCategory,
     serviceDogRequested,
     teenPickup,
   ]);
@@ -1367,17 +1680,44 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
     loadFavoriteLocations();
   }, [loadFavoriteLocations]);
 
+  const pickupStatusLabel = hasOrdTerminal5Restriction
+    ? 'Restricted'
+    : airportPickupInfo?.isAirportPickup || airportPickupInfo?.isEventPickup
+    ? 'Guided'
+    : 'Open';
+
+  const dropoffStatusLabel = dropoffAddress.trim() ? 'Ready' : 'Pending';
+  const selectedClassLabel = formatRideCategoryLabel(rideCategory)
+    .replace(/^Rydinex\s+/i, '')
+    .replace(/^Black\s+/i, '');
+
   return (
     <ScrollView contentContainerStyle={styles.screenContainer}>
       <View style={styles.heroCard}>
-        <Text style={styles.heroEyebrow}>Standard Booking</Text>
-        <Text style={styles.heroTitle}>Ride with upfront confidence</Text>
-        <Text style={styles.heroSubText}>Exact price preview, demand visibility, and no hidden surge surprises.</Text>
+        <Image source={RIDER_LOGO_SOURCE} style={styles.requestRideLogo} resizeMode="contain" />
+        <Text numberOfLines={1} style={styles.requestRideTagline}>Ride with upfront price with confidence</Text>
+        <Text style={styles.heroSubText}>Exact fare preview, airport-aware pickup guidance, and premium controls before you confirm.</Text>
+        <View style={styles.homeStatsRow}>
+          <View style={styles.homeStatCard}>
+            <Text style={styles.homeStatValue}>{selectedClassLabel}</Text>
+            <Text style={styles.homeStatLabel}>Selected class</Text>
+          </View>
+          <View style={styles.homeStatCard}>
+            <Text style={styles.homeStatValue}>{serviceDogRequested ? 'On' : 'Off'}</Text>
+            <Text style={styles.homeStatLabel}>Service animal</Text>
+          </View>
+          <View style={styles.homeStatCard}>
+            <Text style={styles.homeStatValue}>{teenPickup ? 'On' : 'Off'}</Text>
+            <Text style={styles.homeStatLabel}>Teen safety</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Ride Category</Text>
-        <Text style={styles.cardSubText}>Choose your car option with Uber-style upfront base pricing by category.</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.cardTitle}>Ride Category</Text>
+        </View>
+        <Text style={styles.cardSubText}>Choose your ride class.</Text>
         <View style={styles.actionGrid}>
           {RIDE_CATEGORY_OPTIONS.map(option => (
             <Pressable
@@ -1393,11 +1733,15 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
             </Pressable>
           ))}
         </View>
-        <Text style={styles.helperText}>Rydinex Green accepts hybrid or electric vehicles from model year 2013 or newer.</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Ride Options</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.cardTitle}>Ride Options</Text>
+          <View style={styles.inlineInfoChip}>
+            <Text style={styles.inlineInfoChipText}>Before pricing</Text>
+          </View>
+        </View>
         <Text style={styles.cardSubText}>Enable extra accommodations before fetching pricing.</Text>
         <View style={styles.actionGrid}>
           <Pressable
@@ -1425,7 +1769,12 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Favorite Locations</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.cardTitle}>Favorite Locations</Text>
+          <View style={styles.inlineInfoChip}>
+            <Text style={styles.inlineInfoChipText}>{favoriteLocations.length} saved</Text>
+          </View>
+        </View>
         {favoritesLoading ? <ActivityIndicator /> : null}
         {!favoritesLoading && favoriteLocations.length === 0 ? (
           <Text style={styles.cardSubText}>Save Home, Work, and custom spots for one-tap booking.</Text>
@@ -1435,9 +1784,15 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
             <Text style={styles.cardSubTextStrong}>{location.label}</Text>
             <Text style={styles.cardSubText}>{location.address}</Text>
             <View style={styles.inlineButtonRow}>
-              <Button title="Pickup" onPress={() => applyFavoriteLocation(location, 'pickup')} />
-              <Button title="Dropoff" onPress={() => applyFavoriteLocation(location, 'dropoff')} />
-              <Button title="Delete" onPress={() => removeFavoriteLocation(location._id)} />
+              <Pressable style={({ pressed }) => [styles.compactActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => applyFavoriteLocation(location, 'pickup')}>
+                <Text style={styles.compactActionButtonText}>Pickup</Text>
+              </Pressable>
+              <Pressable style={({ pressed }) => [styles.compactActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => applyFavoriteLocation(location, 'dropoff')}>
+                <Text style={styles.compactActionButtonText}>Dropoff</Text>
+              </Pressable>
+              <Pressable style={({ pressed }) => [styles.compactActionButtonDanger, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => removeFavoriteLocation(location._id)}>
+                <Text style={styles.compactActionButtonText}>Delete</Text>
+              </Pressable>
             </View>
           </View>
         ))}
@@ -1445,18 +1800,65 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Pickup</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.cardTitle}>Pickup</Text>
+          <View style={styles.inlineInfoChip}>
+            <Text style={styles.inlineInfoChipText}>{pickupStatusLabel}</Text>
+          </View>
+        </View>
         <TextInput style={styles.input} value={pickupAddress} onChangeText={setPickupAddress} placeholder="Pickup address" />
-        <TextInput style={styles.input} value={pickupLatitude} onChangeText={setPickupLatitude} placeholder="Pickup latitude" keyboardType="decimal-pad" />
-        <TextInput style={styles.input} value={pickupLongitude} onChangeText={setPickupLongitude} placeholder="Pickup longitude" keyboardType="decimal-pad" />
-        {locationAutofillLoading ? <ActivityIndicator /> : <Button title="Use Current Pickup Location" onPress={useCurrentPickupLocation} />}
+        {locationAutofillLoading ? <ActivityIndicator /> : (
+          <Pressable style={({ pressed }) => [styles.secondaryActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={useCurrentPickupLocation}>
+            <Text style={styles.secondaryActionButtonText}>Use Current Pickup Location</Text>
+          </Pressable>
+        )}
         <View style={styles.inlineButtonRow}>
-          <Button title="Save as Home" onPress={() => saveFavoriteLocation('pickup', 'home')} />
-          <Button title="Save as Work" onPress={() => saveFavoriteLocation('pickup', 'work')} />
+          <Pressable style={({ pressed }) => [styles.compactActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => saveFavoriteLocation('pickup', 'home')}>
+            <Text style={styles.compactActionButtonText}>Save as Home</Text>
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.compactActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => saveFavoriteLocation('pickup', 'work')}>
+            <Text style={styles.compactActionButtonText}>Save as Work</Text>
+          </Pressable>
+        </View>
+        <View style={styles.inlineButtonRow}>
+          <Pressable
+            style={({ pressed }) => [styles.compactActionButton, pressed ? styles.primaryActionButtonPressed : null, instructionsLoading ? styles.disabledActionButton : null]}
+            onPress={instructionsLoading ? undefined : loadAirportPickupInstructions}
+          >
+            <Text style={styles.compactActionButtonText}>{instructionsLoading ? 'Checking Airport Rules...' : 'Recheck Airport Rules'}</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.helperText}>Use this to refresh airport terminal and lane restrictions for your pickup point.</Text>
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.cardTitle}>Dropoff</Text>
+          <View style={styles.inlineInfoChip}>
+            <Text style={styles.inlineInfoChipText}>{dropoffStatusLabel}</Text>
+          </View>
+        </View>
+        <TextInput style={styles.input} value={dropoffAddress} onChangeText={setDropoffAddress} placeholder="Dropoff address" />
+        <View style={styles.inlineButtonRow}>
+          <Pressable style={({ pressed }) => [styles.compactActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => saveFavoriteLocation('dropoff', 'other')}>
+            <Text style={styles.compactActionButtonText}>Save Place</Text>
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.compactActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={() => navigation.navigate('Support')}>
+            <Text style={styles.compactActionButtonText}>Support</Text>
+          </Pressable>
         </View>
       </View>
 
       {instructionsLoading ? <ActivityIndicator /> : null}
+      {hasOrdTerminal5Restriction ? (
+        <View style={[styles.card, styles.criticalNoticeCard]}>
+          <Text style={styles.cardTitle}>Critical Airport Restriction</Text>
+          <Text style={styles.criticalNoticeText}>ORD Terminal 5 does not allow standard rideshare pickup.</Text>
+          <Text style={styles.criticalNoticeText}>Move your pickup to ORD Terminal 2 or Terminal 3 to continue.</Text>
+          {airportRestrictionMessage ? <Text style={styles.criticalNoticeText}>{airportRestrictionMessage}</Text> : null}
+        </View>
+      ) : null}
+
       {airportPickupInfo?.isAirportPickup || airportPickupInfo?.isEventPickup ? (
         <View style={[styles.card, styles.noticeCard]}>
           <Text style={styles.cardTitle}>
@@ -1467,6 +1869,7 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
               {airportPickupInfo.airport?.code} - {airportPickupInfo.airport?.name}
             </Text>
           ) : null}
+          {airportPickupInfo?.terminal ? <Text style={styles.cardSubText}>Terminal: {airportPickupInfo.terminal}</Text> : null}
           {airportPickupInfo?.isEventPickup ? (
             <Text style={styles.cardSubText}>{airportPickupInfo.event?.name || 'Event venue'}</Text>
           ) : null}
@@ -1475,30 +1878,51 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
           {airportPickupInfo?.pickupZone?.name ? <Text style={styles.cardSubText}>Pickup zone: {airportPickupInfo.pickupZone.name}</Text> : null}
           {airportPickupInfo?.stagingArea?.name ? <Text style={styles.cardSubText}>Staging area: {airportPickupInfo.stagingArea.name}</Text> : null}
           {airportPickupInfo?.pickupLane?.name ? <Text style={styles.cardSubText}>Pickup lane: {airportPickupInfo.pickupLane.name}</Text> : null}
+          {airportPickupInfo?.pickupLane?.message ? <Text style={styles.cardSubText}>{airportPickupInfo.pickupLane.message}</Text> : null}
+          {airportPickupInfo?.message ? <Text style={styles.cardSubText}>{airportPickupInfo.message}</Text> : null}
           {airportPickupInfo.instructions.map(instruction => (
             <Text key={instruction} style={styles.cardSubText}>• {instruction}</Text>
           ))}
         </View>
       ) : null}
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Dropoff</Text>
-        <TextInput style={styles.input} value={dropoffAddress} onChangeText={setDropoffAddress} placeholder="Dropoff address" />
-        <TextInput style={styles.input} value={dropoffLatitude} onChangeText={setDropoffLatitude} placeholder="Dropoff latitude" keyboardType="decimal-pad" />
-        <TextInput style={styles.input} value={dropoffLongitude} onChangeText={setDropoffLongitude} placeholder="Dropoff longitude" keyboardType="decimal-pad" />
-        <View style={styles.inlineButtonRow}>
-          <Button title="Save Place" onPress={() => saveFavoriteLocation('dropoff', 'other')} />
-          <Button title="Support" onPress={() => navigation.navigate('Support')} />
+      {airportRestrictionMessage && !hasOrdTerminal5Restriction ? (
+        <View style={[styles.card, styles.noticeCard]}>
+          <Text style={styles.cardTitle}>Airport Status Signal</Text>
+          <Text style={styles.cardSubTextStrong}>{airportRestrictionMessage}</Text>
         </View>
-      </View>
+      ) : null}
 
-      {pricingLoading ? <ActivityIndicator /> : <Button title="Get Upfront Fare" onPress={loadUpfrontPricing} />}
+      {pricingLoading ? <ActivityIndicator /> : (
+        <Pressable style={({ pressed }) => [styles.secondaryActionButton, pressed ? styles.primaryActionButtonPressed : null]} onPress={loadUpfrontPricing}>
+          <Text style={styles.secondaryActionButtonText}>Get Upfront Fare</Text>
+        </Pressable>
+      )}
 
       {upfrontPricing ? (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Upfront Pricing</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.cardTitle}>Upfront Pricing</Text>
+            <View style={styles.inlineInfoChip}>
+              <Text style={styles.inlineInfoChipText}>Locked before request</Text>
+            </View>
+          </View>
           <Text style={styles.cardSubText}>Category: {formatRideCategoryLabel(upfrontPricing.rideCategory || rideCategory)}</Text>
           <Text style={styles.cardSubTextStrong}>Final fare now: {formatMoney(upfrontPricing.upfrontFare)}</Text>
+          <View style={styles.homeStatsRow}>
+            <View style={styles.homeStatCard}>
+              <Text style={styles.homeStatValue}>{formatMoney(upfrontPricing.upfrontFare)}</Text>
+              <Text style={styles.homeStatLabel}>Fare now</Text>
+            </View>
+            <View style={styles.homeStatCard}>
+              <Text style={styles.homeStatValue}>x{Number(upfrontPricing.surgeMultiplier || 1).toFixed(2)}</Text>
+              <Text style={styles.homeStatLabel}>Surge</Text>
+            </View>
+            <View style={styles.homeStatCard}>
+              <Text style={styles.homeStatValue}>{Number(upfrontPricing.durationMinutes || 0).toFixed(0)}m</Text>
+              <Text style={styles.homeStatLabel}>ETA</Text>
+            </View>
+          </View>
           <Text style={styles.cardSubText}>Estimated distance: {Number(upfrontPricing.distanceMiles || 0).toFixed(2)} miles</Text>
           <Text style={styles.cardSubText}>Estimated duration: {Number(upfrontPricing.durationMinutes || 0).toFixed(1)} min</Text>
           <Text style={styles.cardSubText}>Base fare: {formatMoney(upfrontPricing.baseFare)}</Text>
@@ -1519,15 +1943,14 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
               <Text style={styles.metricPillText}>Demand ratio {Number(upfrontPricing.demandRatio || 1).toFixed(2)}</Text>
             </View>
           </View>
-          <Text style={styles.cardSubText}>Supply vs demand: {upfrontPricing.supplyCount || 0} drivers for {upfrontPricing.demandCount || 0} active requests.</Text>
-          <Text style={styles.cardSubText}>Driver payout: {Number(upfrontPricing.driverSharePercent || 70).toFixed(0)}% | Platform: {Number(upfrontPricing.platformSharePercent || 30).toFixed(0)}%</Text>
-          <Text style={styles.cardSubText}>Surge formula: {upfrontPricing.surgeTransparency?.formula || '1 + (demandRatio - 1) * sensitivity'}</Text>
-          <Text style={styles.cardSubText}>Sensitivity: {Number(upfrontPricing.surgeTransparency?.sensitivity || upfrontPricing.surgeProfile?.sensitivity || 0).toFixed(2)} | Max: x{Number(upfrontPricing.surgeTransparency?.maxMultiplier || upfrontPricing.surgeProfile?.maxMultiplier || 0).toFixed(2)}</Text>
-          <Text style={styles.helperText}>Transparent surge means you see what changed and why before you confirm.</Text>
         </View>
       ) : null}
 
-      {loading ? <ActivityIndicator /> : <Button title="Request Ride" onPress={requestTrip} />}
+      {loading ? <ActivityIndicator /> : (
+        <Pressable style={({ pressed }) => [styles.primaryActionButton, pressed ? styles.primaryActionButtonPressed : null, hasOrdTerminal5Restriction ? styles.disabledActionButton : null]} onPress={hasOrdTerminal5Restriction ? undefined : requestTrip}>
+          <Text style={styles.primaryActionButtonText}>{hasOrdTerminal5Restriction ? 'Pickup Restricted' : 'Request Ride'}</Text>
+        </Pressable>
+      )}
     </ScrollView>
   );
 }
@@ -1633,6 +2056,7 @@ function WaitingForDriverScreen({ navigation, route, context }: WaitingForDriver
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.heroCard}>
+        <Image source={RIDER_LOGO_SOURCE} style={styles.heroLogoStandalone} resizeMode="contain" />
         <Text style={styles.heroEyebrow}>Driver Match</Text>
         <Text style={styles.heroTitle}>{trip ? trip.status.replace(/_/g, ' ') : 'waiting for trip'}</Text>
         <Text style={styles.heroSubText}>Pickup ETA: {formatEtaLabel(pickupEtaMinutes)}</Text>
@@ -1640,7 +2064,7 @@ function WaitingForDriverScreen({ navigation, route, context }: WaitingForDriver
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Trip Snapshot</Text>
-        <Text style={styles.cardSubText}>Category: {formatRideCategoryLabel(trip?.rideCategory || 'rydinex_regular')}</Text>
+        <Text style={styles.cardSubText}>Category: {formatRideCategoryLabel(trip?.rideCategory || 'black_car')}</Text>
         <Text style={styles.cardSubText}>Service dog: {trip?.serviceDogRequested ? 'Yes' : 'No'}</Text>
         <Text style={styles.cardSubText}>Teen pickup: {trip?.teenPickup ? 'Yes (back seat only)' : 'No'}</Text>
         {trip?.specialInstructions ? <Text style={styles.cardSubText}>Notes: {trip.specialInstructions}</Text> : null}
@@ -1663,7 +2087,7 @@ function WaitingForDriverScreen({ navigation, route, context }: WaitingForDriver
         <Text style={styles.cardTitle}>Assigned Driver Identity</Text>
         <Text style={styles.cardSubTextStrong}>Name: {trip?.driver?.name || 'Searching for driver...'}</Text>
         <Text style={styles.cardSubText}>Phone: {trip?.driver?.phone || 'N/A'}</Text>
-        <Text style={styles.cardSubText}>Driver profile status: {trip?.driver?.status || 'pending'}</Text>
+        <Text style={styles.cardSubText}>Driver assignment: {trip?.driver?.status || (trip?.driver?.name ? 'assigned' : 'searching')}</Text>
       </View>
 
       <View style={styles.card}>
@@ -1794,6 +2218,7 @@ function TripProgressScreen({ navigation, route }: TripProgressProps) {
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.heroCard}>
+        <Image source={RIDER_LOGO_SOURCE} style={styles.heroLogoStandalone} resizeMode="contain" />
         <Text style={styles.heroEyebrow}>Trip Live</Text>
         <Text style={styles.heroTitle}>{trip?.status || tracking?.status || 'unknown status'}</Text>
         <Text style={styles.heroSubText}>ETA to destination: {formatEtaLabel(destinationEtaMinutes)}</Text>
@@ -1801,7 +2226,7 @@ function TripProgressScreen({ navigation, route }: TripProgressProps) {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Trip Progress</Text>
-        <Text style={styles.cardSubText}>Category: {formatRideCategoryLabel(trip?.rideCategory || 'rydinex_regular')}</Text>
+        <Text style={styles.cardSubText}>Category: {formatRideCategoryLabel(trip?.rideCategory || 'black_car')}</Text>
         <Text style={styles.cardSubText}>Service dog: {trip?.serviceDogRequested ? 'Yes' : 'No'}</Text>
         <Text style={styles.cardSubText}>Teen pickup: {trip?.teenPickup ? 'Yes (back seat only)' : 'No'}</Text>
         {trip?.specialInstructions ? <Text style={styles.cardSubText}>Notes: {trip.specialInstructions}</Text> : null}
@@ -2190,6 +2615,7 @@ function ReceiptScreen({ route, navigation, context }: ReceiptProps) {
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.heroCard}>
+        <Image source={RIDER_LOGO_SOURCE} style={styles.heroLogoStandalone} resizeMode="contain" />
         <Text style={styles.heroEyebrow}>Trip Receipt</Text>
         <Text style={styles.heroTitle}>Your fare is final and itemized</Text>
         <Text style={styles.heroSubText}>See every charge with full surge and commission transparency.</Text>
@@ -2395,6 +2821,7 @@ function SupportScreen({ route, navigation, context }: SupportProps) {
   return (
     <ScrollView contentContainerStyle={styles.screenContainer}>
       <View style={styles.heroCard}>
+        <Image source={RIDER_LOGO_SOURCE} style={styles.heroLogoStandalone} resizeMode="contain" />
         <Text style={styles.heroEyebrow}>Rider Support</Text>
         <Text style={styles.heroTitle}>Fast, human support</Text>
         <Text style={styles.heroSubText}>Share the issue and our team gets a triaged ticket immediately.</Text>
@@ -2428,6 +2855,12 @@ function SupportScreen({ route, navigation, context }: SupportProps) {
   );
 }
 const styles = StyleSheet.create({
+  sessionLoaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: PREMIUM_COLORS.background,
+  },
   appContainer: {
     flex: 1,
     backgroundColor: PREMIUM_COLORS.background,
@@ -2437,14 +2870,14 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     gap: 12,
     paddingBottom: 32,
+    backgroundColor: PREMIUM_COLORS.background,
   },
   input: {
-    borderWidth: 1,
-    borderColor: PREMIUM_COLORS.divider,
+    borderWidth: 0,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: PREMIUM_COLORS.cardHighest,
     color: PREMIUM_COLORS.textPrimary,
   },
   helperText: {
@@ -2456,57 +2889,118 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   card: {
-    borderWidth: 1,
-    borderColor: PREMIUM_COLORS.divider,
     borderRadius: 14,
     padding: 14,
     backgroundColor: PREMIUM_COLORS.card,
     shadowColor: PREMIUM_COLORS.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
+    shadowOpacity: 0.24,
+    shadowRadius: 24,
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 10,
     },
-    elevation: 2,
+    elevation: 6,
   },
   heroCard: {
-    borderRadius: 16,
-    padding: 16,
-    backgroundColor: PREMIUM_COLORS.accent,
+    borderRadius: 24,
+    padding: 20,
+    backgroundColor: PREMIUM_COLORS.cardHigh,
     shadowColor: PREMIUM_COLORS.shadow,
-    shadowOpacity: 0.14,
-    shadowRadius: 12,
+    shadowOpacity: 0.3,
+    shadowRadius: 28,
     shadowOffset: {
       width: 0,
-      height: 5,
+      height: 12,
     },
-    elevation: 3,
+    elevation: 8,
+  },
+  heroHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  heroHeaderCopy: {
+    flex: 1,
+  },
+  heroLogo: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+  },
+  heroLogoStandalone: {
+    width: 74,
+    height: 74,
+    borderRadius: 14,
+    marginBottom: 8,
+  },
+  requestRideLogo: {
+    width: 84,
+    height: 84,
+    borderRadius: 14,
+    marginBottom: 10,
+    alignSelf: 'center',
+  },
+  requestRideTagline: {
+    color: PREMIUM_COLORS.textPrimary,
+    fontSize: 18,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    fontFamily: Platform.OS === 'android' ? 'cursive' : undefined,
+    marginBottom: 8,
   },
   heroEyebrow: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#dbeafe',
+    color: PREMIUM_COLORS.textSecondary,
     marginBottom: 4,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1.1,
   },
   heroTitle: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: '800',
-    color: '#ffffff',
-    marginBottom: 4,
+    color: PREMIUM_COLORS.textPrimary,
+    marginBottom: 6,
   },
   heroSubText: {
-    color: '#e0ecff',
+    color: PREMIUM_COLORS.textSecondary,
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 21,
+  },
+  homeStatsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  homeStatCard: {
+    flex: 1,
+    borderRadius: 16,
+    backgroundColor: PREMIUM_COLORS.cardHighest,
+    padding: 12,
+    gap: 4,
+  },
+  homeStatValue: {
+    color: PREMIUM_COLORS.textPrimary,
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  homeStatLabel: {
+    color: PREMIUM_COLORS.textSecondary,
+    fontSize: 12,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 6,
     color: PREMIUM_COLORS.textPrimary,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
   },
   cardSubText: {
     fontSize: 14,
@@ -2522,6 +3016,17 @@ const styles = StyleSheet.create({
   noticeCard: {
     backgroundColor: PREMIUM_COLORS.warningSoft,
   },
+  criticalNoticeCard: {
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    backgroundColor: '#fef2f2',
+  },
+  criticalNoticeText: {
+    fontSize: 14,
+    color: '#991b1b',
+    fontWeight: '700',
+    marginBottom: 4,
+  },
   successNoticeCard: {
     backgroundColor: PREMIUM_COLORS.successSoft,
   },
@@ -2531,12 +3036,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionChip: {
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    backgroundColor: PREMIUM_COLORS.accentSoft,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: PREMIUM_COLORS.cardHighest,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   actionChipPressed: {
     opacity: 0.75,
@@ -2546,7 +3049,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#d6e8ff',
   },
   actionChipText: {
-    color: PREMIUM_COLORS.accent,
+    color: PREMIUM_COLORS.textPrimary,
     fontWeight: '600',
     fontSize: 13,
   },
@@ -2566,16 +3069,13 @@ const styles = StyleSheet.create({
   },
   ratingPill: {
     minWidth: 32,
-    borderWidth: 1,
-    borderColor: PREMIUM_COLORS.divider,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: '#ffffff',
+    backgroundColor: PREMIUM_COLORS.cardHighest,
     alignItems: 'center',
   },
   ratingPillSelected: {
-    borderColor: PREMIUM_COLORS.accent,
     backgroundColor: PREMIUM_COLORS.accentSoft,
   },
   ratingPillText: {
@@ -2598,7 +3098,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   metricPill: {
-    backgroundColor: '#eef2ff',
+    backgroundColor: PREMIUM_COLORS.cardHighest,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -2618,11 +3118,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   favoriteItem: {
-    borderWidth: 1,
-    borderColor: PREMIUM_COLORS.divider,
     borderRadius: 12,
     padding: 10,
-    backgroundColor: '#fafcff',
+    backgroundColor: PREMIUM_COLORS.cardHigh,
     marginTop: 8,
   },
   inlineButtonRow: {
@@ -2631,23 +3129,103 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 6,
   },
+  compactActionButton: {
+    backgroundColor: PREMIUM_COLORS.cardHighest,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  compactActionButtonDanger: {
+    backgroundColor: '#492525',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  compactActionButtonText: {
+    color: PREMIUM_COLORS.textPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
   vehiclePhoto: {
     width: '100%',
     height: 160,
     borderRadius: 12,
     marginBottom: 10,
-    backgroundColor: '#dbe7f5',
+    backgroundColor: PREMIUM_COLORS.cardHighest,
   },
   mapContainer: {
     height: 260,
     marginTop: 10,
     borderRadius: 12,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: PREMIUM_COLORS.divider,
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  inlineInfoChip: {
+    backgroundColor: PREMIUM_COLORS.cardHighest,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  inlineInfoChipText: {
+    color: PREMIUM_COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  inlineActionChip: {
+    backgroundColor: PREMIUM_COLORS.accentSoft,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  inlineActionChipText: {
+    color: PREMIUM_COLORS.textPrimary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  networkList: {
+    marginTop: 12,
+    gap: 8,
+  },
+  networkListItem: {
+    backgroundColor: PREMIUM_COLORS.cardHigh,
+    borderRadius: 14,
+    padding: 12,
+  },
+  homePrimaryActions: {
+    gap: 10,
+    marginTop: 4,
+  },
+  primaryActionButton: {
+    backgroundColor: PREMIUM_COLORS.accent,
+    borderRadius: 18,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryActionButton: {
+    backgroundColor: PREMIUM_COLORS.cardHigh,
+    borderRadius: 18,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryActionButtonPressed: {
+    opacity: 0.86,
+  },
+  disabledActionButton: {
+    opacity: 0.5,
+  },
+  primaryActionButtonText: {
+    color: '#fffeff',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  secondaryActionButtonText: {
+    color: PREMIUM_COLORS.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
 

@@ -17,6 +17,8 @@ android/app/build/
 android/build/
 android/.gradle/
 android/app/.cxx/
+.gradle-home-driver/
+.gradle-home-driver-bak/
 
 # iOS build
 ios/build/

@@ -28,7 +28,7 @@ export default async function ConnectPage() {
       <section className={styles.shell}>
         <header className={styles.topBar}>
           <Link href="/" className={styles.backLink}>
-            Back to rydinex.com
+            Back to Desktop Home
           </Link>
           <Link href="/admin" className={styles.adminLink}>
             Operations Console
@@ -36,8 +36,8 @@ export default async function ConnectPage() {
         </header>
 
         <div className={styles.hero}>
-          <p className={styles.eyebrow}>App Connectivity Center</p>
-          <h1>One mobility backbone for rider and driver apps.</h1>
+          <p className={styles.eyebrow}>Desktop Connectivity Center</p>
+          <h1>One desktop bridge for rider, driver, and admin operations.</h1>
           <p>
             This bridge keeps rider demand, driver supply, and operations signals synced in one realtime flow so matching,
             payouts, and airport opportunities stay aligned.
@@ -48,6 +48,7 @@ export default async function ConnectPage() {
         <div className={styles.actionGrid}>
           <article className={styles.card}>
             <h2>Open Rider App</h2>
+            <img src="/rydinex-logo.png" alt="Rydinex rider logo" className={styles.riderLogo} />
             <p>Jump directly into rider booking and trip tracking.</p>
             <a href={riderDeepLink} className={styles.primaryAction}>
               Launch Rider App

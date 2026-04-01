@@ -6,6 +6,8 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import LRM from 'leaflet-routing-machine';
 
+const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://10.0.0.70:4000';
+
 export default function RydinexLiveMap() {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -53,7 +55,7 @@ export default function RydinexLiveMap() {
   useEffect(() => {
     // Initialize Socket.io connection
     const io = require('socket.io-client');
-    socketRef.current = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000', {
+    socketRef.current = io(BACKEND_ORIGIN, {
       path: '/socket.io/',
       reconnection: true,
     });
@@ -94,7 +96,7 @@ export default function RydinexLiveMap() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/rydinex-poi/nearby?${query}`,
+        `${BACKEND_ORIGIN}/api/rydinex-poi/nearby?${query}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
