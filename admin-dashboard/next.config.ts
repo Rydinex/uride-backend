@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
+const defaultBackendOrigin = "https://uride-production.up.railway.app";
+
 const nextConfig: NextConfig = {
   async rewrites() {
-    const backendBase = process.env.BACKEND_BASE_URL || "http://10.0.0.70:4000";
+    const backendBase =
+      process.env.BACKEND_BASE_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      defaultBackendOrigin;
 
     return [
       {
