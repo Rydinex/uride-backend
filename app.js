@@ -5,7 +5,8 @@ const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+// ✅ FIXED — allow Railway to load real environment variables
+require('dotenv').config();
 
 const { getRedisClient } = require('./services/redisClient');
 const { registerLocationSocketHandlers } = require('./sockets/locationSocket');
@@ -29,7 +30,7 @@ const io = socketIo(server, {
 
 app.locals.io = io;
 
-// MongoDB
+// ⭐ MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
@@ -93,7 +94,6 @@ app.use('/api/trips', require('./routes/trips'));
 app.use('/api/airport-queue', require('./routes/airportQueue'));
 app.use('/api/complaints', require('./routes/complaints'));
 
-
 app.use('/api/admin', require('./routes/adminDrivers'));
 app.use('/api/admin', require('./routes/adminRiders'));
 app.use('/api/admin', require('./routes/adminTrips'));
@@ -109,10 +109,8 @@ app.use('/api/rydinex-geocoding', require('./routes/rydinexGeocoding'));
 app.use('/api/rydinex-traffic', require('./routes/rydinexTraffic'));
 app.use('/api/rydinex-map-intelligence', require('./routes/rydinexMapIntelligence'));
 
-// 🔥 NEW — REQUIRED BY DRIVER APP
-// This is the missing route that fixes the map, online/offline, vehicle info, etc.
+// Driver app route
 app.use('/api/driver', require('./routes/driverProfile'));
-
 
 // Error handlers
 app.use((error, req, res, next) => {
