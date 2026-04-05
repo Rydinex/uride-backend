@@ -29,9 +29,12 @@ For browser testing of protected dashboards, use query token:
 1. Deploy repository/folder containing this project root.
 2. Railway uses `railway.json` at root:
    - Build command: `npm --prefix backend install`
-   - Start command: `node backend/src/server.js`
+   - Start command: `npm --prefix backend start`
 3. Add environment variables:
-   - `DATABASE_URL` = your Railway Postgres URL
+   - `MONGO_URI` = your MongoDB Atlas URL
+   - `REDIS_URL` or `REDIS_URI` = your Upstash/Redis URL
+   - `STRIPE_SECRET_KEY` = your Stripe secret key
+   - `JWT_SECRET` = your JWT signing key
    - `PORT` is optional (Railway injects it)
 
 ## Domain setup for rydinex.com

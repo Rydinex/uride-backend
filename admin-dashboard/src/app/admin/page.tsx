@@ -308,8 +308,8 @@ function getErrorMessage(payload: unknown, fallback: string): string {
 export default function Home() {
   const [token, setToken] = useState("");
   const [admin, setAdmin] = useState<AdminProfile | null>(null);
-  const [email, setEmail] = useState("admin@rydinex.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [monitorTrips, setMonitorTrips] = useState<MonitorTrip[]>([]);
