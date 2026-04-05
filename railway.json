@@ -1,0 +1,6 @@
+{
+  "build": {
+    "root": "frontend",
+    "builder": "NIXPACKS"
+  }
+}
