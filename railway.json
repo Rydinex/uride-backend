@@ -2,10 +2,6 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "root": "frontend",
-    "builder": "{
-  "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "root": "frontend",
     "builder": "NIXPACKS"
   }
 }
