@@ -1,0 +1,189 @@
+.page {
+  min-height: 100vh;
+  padding: 1rem;
+  color: #e5e2e3;
+  background:
+    radial-gradient(1150px 640px at -6% -22%, rgba(39, 110, 241, 0.22), transparent 58%),
+    radial-gradient(960px 560px at 104% -12%, rgba(255, 182, 148, 0.18), transparent 56%),
+    #131314;
+}
+
+.shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.backLink,
+.adminLink {
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 0.7rem;
+  padding: 0.56rem 0.78rem;
+  background: #2a2a2b;
+  color: #c2c6d7;
+}
+
+.backLink:hover,
+.adminLink:hover {
+  background: #353436;
+  color: #fffeff;
+}
+
+.hero {
+  border-radius: 1rem;
+  padding: 1.1rem;
+  background: #1f1f20;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b1c5ff;
+}
+
+.hero h1 {
+  margin: 0.56rem 0 0;
+  font-size: clamp(1.9rem, 2.9vw, 2.8rem);
+  line-height: 1.05;
+  font-family: var(--font-sora), sans-serif;
+  letter-spacing: -0.02em;
+  max-width: 20ch;
+}
+
+.hero p {
+  margin: 0.8rem 0 0;
+  color: #c2c6d7;
+  max-width: 64ch;
+}
+
+.syncText {
+  font-weight: 700;
+  color: #b1c5ff;
+}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  border-radius: 0.88rem;
+  background: #1f1f20;
+  padding: 0.95rem;
+  display: grid;
+  gap: 0.58rem;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.card p {
+  margin: 0;
+  color: #c2c6d7;
+}
+
+.riderLogo {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.primaryAction,
+.secondaryAction {
+  border-radius: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.6rem 0.78rem;
+  font-size: 0.9rem;
+}
+
+.primaryAction {
+  color: #ffffff;
+  background: linear-gradient(135deg, #276ef1 0%, #1e60df 100%);
+}
+
+.secondaryAction {
+  background: #353436;
+  color: #e5e2e3;
+}
+
+.windowList {
+  margin: 0;
+  padding-left: 1rem;
+  color: #c2c6d7;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.integrationSteps {
+  border-radius: 0.9rem;
+  background: #1f1f20;
+  padding: 0.95rem;
+}
+
+.integrationSteps h2 {
+  margin: 0;
+}
+
+.stepGrid {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stepGrid article {
+  border-radius: 0.74rem;
+  padding: 0.78rem;
+  background: #2a2a2b;
+}
+
+.stepGrid span {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffffff;
+  font-weight: 800;
+  background: #276ef1;
+}
+
+.stepGrid h3 {
+  margin: 0.56rem 0 0;
+  font-size: 0.98rem;
+}
+
+.stepGrid p {
+  margin: 0.42rem 0 0;
+  color: #c2c6d7;
+}
+
+@media (max-width: 960px) {
+  .actionGrid,
+  .stepGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
