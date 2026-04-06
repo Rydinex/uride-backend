@@ -2,7 +2,8 @@
 
 // Backend API domain (production)
 const BACKEND_URL =
-	process.env.EXPO_PUBLIC_BACKEND_URL || 'https://api.rydinex.com';
+  process.env.EXPO_PUBLIC_BACKEND_URL ||
+  'https://uride-backend-production.up.railway.app';
 
 // Optional: Admin panel domain (for future use)
 export const ADMIN_PANEL_URL = 'https://admin.rydinex.com';
