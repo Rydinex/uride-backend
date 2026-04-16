@@ -1,11 +1,20 @@
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require("nativewind/metro");
+const path = require("path");
 
-/**
- * Metro configuration
- * https://reactnative.dev/docs/metro
- *
- * @type {import('@react-native/metro-config').MetroConfig}
- */
-const config = {};
+const config = getDefaultConfig(__dirname);
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+// Resolver configuration for web platform
+
+// Exclude react-native-maps from web bundling
+config.resolver.blockList = [
+  ...config.resolver.blockList,
+  /node_modules\/react-native-maps\/.*/,
+];
+
+module.exports = withNativeWind(config, {
+  input: "./global.css",
+  // Force write CSS to file system instead of virtual modules
+  // This fixes iOS styling issues in development mode
+  forceWriteFileSystem: true,
+});

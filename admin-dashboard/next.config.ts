@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const defaultBackendOrigin = "https://uride-production.up.railway.app";
+const defaultBackendOrigin = "https://api.rydinex.com";
 
 const nextConfig: NextConfig = {
   async rewrites() {

@@ -2,11 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container-custom {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.btn-primary {
+  @apply bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-dark px-6 py-3 rounded-lg font-semibold hover:bg-teal-400 transition-colors;
+}
+
+.btn-outline {
+  @apply border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors;
+}
+
+.section-title {
+  @apply text-4xl md:text-5xl font-bold text-dark mb-4;
+}
+
+.section-subtitle {
+  @apply text-lg text-gray-600 mb-8;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
 }

@@ -1430,7 +1430,7 @@ function RequestRideScreen({ navigation, context }: RequestRideProps) {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Ride Category</Text>
-        <Text style={styles.cardSubText}>Choose your car option with Uber-style upfront base pricing by category.</Text>
+        <Text style={styles.cardSubText}>Choose your car option with Rydinex upfront base pricing by category.</Text>
         <View style={styles.actionGrid}>
           {RIDE_CATEGORY_OPTIONS.map(option => (
             <Pressable

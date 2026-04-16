@@ -6,7 +6,7 @@ import { io, type Socket } from 'socket.io-client';
 import 'leaflet/dist/leaflet.css';
 
 const BACKEND_ORIGIN =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://uride-production.up.railway.app';
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.rydinex.com';
 
 type MapLayer = 'street' | 'satellite';
 

@@ -55,7 +55,7 @@ AS $$
 $$;
 
 ---------------------------------------------------------
--- 4) UBER-STYLE ESTIMATED FARE
+-- 4) RYDINEX DISTANCE-BASED ESTIMATED FARE
 -- fare = base + (distance_km * per_km) + (duration_min * per_min)
 ---------------------------------------------------------
 CREATE OR REPLACE FUNCTION estimated_fare(
